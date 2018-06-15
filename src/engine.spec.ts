@@ -42,6 +42,21 @@ describe("Engine", () => {
     expect(() => new Engine(moves)).to.not.throw();
   });
 
+  it("should allow to set up with Ivits (PI as last player) without errors", () => {
+    const moves = parseMoves(`  
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction ivits
+      p1 build m 2x2
+      p1 build m 4x0
+      p2 build PI -1x-1
+    `);
+
+    expect(() => new Engine(moves)).to.not.throw();
+  });
+
+
+
   it("should allow players to pass", () => {
     const moves = parseMoves(`
       init 2 randomSeed
