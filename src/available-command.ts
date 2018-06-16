@@ -2,7 +2,7 @@ import { Command, Faction, Building } from './enums';
 import Engine from './engine';
 import * as _ from 'lodash';
 import factions from './factions';
-import Reward from './reward';
+import * as assert from "assert";
 
 export default interface AvailableCommand {
   name: Command;
