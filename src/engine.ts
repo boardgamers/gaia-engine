@@ -193,7 +193,7 @@ export default class Engine {
       if (elem.building === building && elem.coordinates === location) {
         const {q, r} = CubeCoordinates.parse(location);
         
-        this.player(player).build(building, Reward.parse(elem.cost));
+        this.player(player).build( elem.upgradedBuilding , building, Reward.parse(elem.cost));
  
         const hex = this.map.grid.get(q, r);
         hex.data.building = building;
