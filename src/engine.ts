@@ -54,12 +54,64 @@ export default class Engine {
 
   availableCommand(player: PlayerEnum, command: Command) {
     return this.availableCommands.find(
+<<<<<<< HEAD
       availableCommand =>
         availableCommand.name === command &&
         (!(player in availableCommand) || availableCommand.player === player)
     );
   }
 
+=======
+      availableCommand => {
+        if (availableCommand.name !== command) {
+          return false;
+        } 
+        if (availableCommand.player === undefined) {
+          return false;
+        }
+        return availableCommand.player === player;
+      }
+    );
+  }
+
+  nextPlayerToSetup() {
+    if (this.turn > 0) {
+      return undefined;
+    }
+
+    // Find the first player with zero mine
+    // excluding Ivits, they have to place the PI at the end
+    let player = this.players.findIndex(pl => pl.data[Building.Mine] === 0 && pl.faction !== Faction.Ivits);
+
+    if (player !== -1) {
+      return player;
+    }
+
+    // Find the last player with one mine
+    player = _.findLastIndex(this.players, pl => pl.data[Building.Mine] === 1 && pl.faction !== Faction.Ivits);
+
+    if (player !== -1) {
+      return player;
+    }
+
+    // three mines for Xenos
+    player = this.players.findIndex(pl => pl.data[Building.Mine] === 2 && pl.faction === Faction.Xenos) ;
+
+    if (player !== -1) {
+      return player;
+    }
+
+    // Ivits is last 
+    player = this.players.findIndex(pl => !pl.data[Building.PlanetaryInstitute] && pl.faction === Faction.Ivits);
+
+    if (player !== -1) {
+      return player;
+    }
+
+    return undefined;
+  }
+
+>>>>>>> master
   player(player: number): Player {
     return this.players[player];
   }

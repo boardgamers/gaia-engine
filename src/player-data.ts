@@ -1,6 +1,6 @@
 import Reward from "./reward";
 import { Resource } from "..";
-import { ResearchField } from "./enums";
+import { ResearchField, Building } from "./enums";
 import { EventEmitter } from "eventemitter3";
 
 const MAX_ORE = 15;
@@ -24,12 +24,12 @@ export default class PlayerData extends EventEmitter {
     bowl3: 0,
     gaia: 0
   };
-  mines: number = 0;
-  tradingStations: number = 0;
-  platenaryInstitute: boolean = false;
-  researchLabs: number = 0;
-  academy1: boolean = false;
-  academy2: boolean = false; 
+  [Building.Mine]: number = 0;
+  [Building.TradingStation]: number = 0;
+  [Building.PlanetaryInstitute]: number = 0;
+  [Building.ResearchLab]: number = 0;
+  [Building.Academy1]: number = 0;
+  [Building.Academy2]: number = 0; 
   research: {
     [key in ResearchField]: number
   } = {
@@ -37,24 +37,25 @@ export default class PlayerData extends EventEmitter {
   };
   range: number = 1;
 
-  toJSON() {
-    return {
+  toJSON(): Object {
+    const ret = {
       victoryPoints: this.victoryPoints,
       credits: this.credits,
       ores: this.ores,
       qics: this.qics,
       knowledge: this.knowledge,
       power: this.power,
-      mines: this.mines,
-      tradingStations: this.tradingStations,
-      platenaryInstitute: this.platenaryInstitute,
-      researchLabs: this.researchLabs,
-      academy1: this.academy1,
-      academy2: this.academy2,
       research: this.research,
       range: this.range
     }
+
+    for (const building of Object.values(Building)) {
+      ret[building] = this[building];
+    }
+
+    return ret;
   }
+
   payCosts(costs: Reward[]) {
     for (let cost of costs) {
       this.payCost(cost);
@@ -100,8 +101,27 @@ export default class PlayerData extends EventEmitter {
   }
 
   canPay(reward: Reward[]): boolean {
-    // TODO: proper check whether the player can pay or not
+    const rewards = Reward.merge(reward);
+
+    for (const reward of rewards) {
+      if (!this.hasResource(reward)) {
+        return false;
+      }
+    }
     return true;
+  }
+
+  hasResource(reward: Reward) {
+    switch (reward.type) {
+      case Resource.Ore: return this.ores >= reward.count;
+      case Resource.Credit: return this.credits >= reward.count;
+      case Resource.Knowledge: return this.knowledge >= reward.count;
+      case Resource.VictoryPoint: return this.victoryPoints >= reward.count;
+      case Resource.Qic: return this.qics >= reward.count;
+      case Resource.None: return true;
+    }
+
+    return false;
   }
 
   /**

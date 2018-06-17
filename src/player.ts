@@ -48,6 +48,14 @@ export default class Player {
     return factions.planet(this.faction);
   }
 
+  canBuild(building: Building, isolated = true) : boolean {
+    if (this.data[building] >= this.board.maxBuildings(building)) {
+      // Too many buildings of the same kind
+      return false;
+    }
+    return this.data.canPay(this.board.cost(building, isolated));
+  }
+
   loadFaction(faction: Faction) {
     this.faction = faction;
     this.board = factionBoard(faction);
@@ -86,68 +94,13 @@ export default class Player {
     this.data.payCosts(cost);
 
     // Add income of the building to the list of events
-    switch (building) {
-      case Building.Mine: {
-        this.loadEvent(this.board.mines.income[this.data.mines]);
-        this.data.mines += 1;
-        break;
-      }
+    this.loadEvent(this.board[building].income[this.data[building]]);
+    this.data[building] += 1;
 
-      case Building.TradingStation: {
-        this.loadEvent(
-          this.board.tradingStations.income[this.data.tradingStations]
-        );
-        this.data.tradingStations += 1;
-        break;
-      }
-
-      case Building.ResearchLab: {
-        this.loadEvent(this.board.researchLabs.income[this.data.researchLabs]);
-        this.data.researchLabs += 1;
-
-        break;
-      }
-
-      case Building.PlanetaryInstitute: {
-        this.loadEvent(this.board.planetaryInstitute.income[0]);
-        this.data.platenaryInstitute = true;
-        break;
-      }
-
-      case Building.Academy1: {
-        this.loadEvent(this.board.academy1.income[0]);
-        this.data.academy1 = true;
-        break;
-      }
-
-      case Building.Academy2: {
-        this.loadEvent(this.board.academy2.income[0]);
-        this.data.academy2 = true;
-        break;
-      }
-    }
     // remove upgraded building and the associated event
-
-    switch (upgradedBuilding) {
-      case Building.Mine: {
-        this.loadEvent(this.board.mines.income[this.data.mines]);
-        this.data.mines -= 1;
-        break;
-      }
-      case Building.TradingStation: {
-        this.removeEvent(
-          this.board.tradingStations.income[this.data.tradingStations]
-        );
-        this.data.tradingStations -= 1;
-        break;
-      }
-      case Building.ResearchLab: {
-        this.removeEvent(
-          this.board.researchLabs.income[this.data.researchLabs]
-        );
-        this.data.researchLabs -= 1;
-        break;
-      }
+    if(upgradedBuilding) {
+      this.data[upgradedBuilding] -= 1;
+      this.removeEvent(this.board[upgradedBuilding].income[this.data[upgradedBuilding]]);
     }
   }
 
@@ -155,9 +108,5 @@ export default class Player {
     for (const event of this.events[Operator.Income]) {
       this.data.gainRewards(event.rewards);
     }
-  }
-
-  executeRoundBooster() {
-    //TODO turn end round booster effects and managements
   }
 }
