@@ -11,15 +11,16 @@ export default interface AvailableCommand {
 }
 
 export function generate(engine: Engine): AvailableCommand[] {
-  if (!engine.map) {
+  // init game
+  if (engine.turn == -2) {
     return [{ name: Command.Init }];
   }
-
-  if (engine.numberOfPlayersWithFactions() < engine.players.length) {
+  // faction selection
+  if (engine.turn == -1 ) {
     return [
       {
         name: Command.ChooseFaction,
-        player: engine.numberOfPlayersWithFactions(),
+        player: engine.currentPlayer,
         data: _.difference(
           Object.values(Faction),
           engine.players.map(pl => pl.faction),
@@ -29,8 +30,9 @@ export function generate(engine: Engine): AvailableCommand[] {
     ];
   }
 
-  if (engine.nextPlayerToSetup() !== undefined) {
-    const player = engine.nextPlayerToSetup();
+  // initial buuildings
+  if (engine.turn == 0) {
+    const player = engine.currentPlayer;
     const planet = engine.player(player).planet;
     const buildings = [];
 
