@@ -22,7 +22,8 @@ export default class Engine {
   map: SpaceMap;
   players: Player[];
   availableCommands: AvailableCommand[] = [];
-  turn: number = -2;
+  round: number = -2;
+  turn: number = 0;
   /** Order of players in the turn */
   turnOrder: PlayerEnum[] = [];
   /**
@@ -66,7 +67,7 @@ export default class Engine {
   move(move: string) {
     const split = move.trim().split(' ');
 
-    if (this.turn === -2) {
+    if (this.round === -2) {
       const command = split[0] as Command;
 
       const available = this.availableCommands;
@@ -78,7 +79,7 @@ export default class Engine {
       );
 
       (this[command] as any)(...split.slice(1));
-      this.endTurn();
+      this.endRound();
     } else {
       const playerS = split[0];
 
@@ -104,12 +105,12 @@ export default class Engine {
 
       if (this.turnOrder.length === 0) {
         // If all players have passed
-        this.endTurn();
+        this.endRound();
       } else {
         // Let the next player move
         this.moveToNextPlayer();
         if (this.currentPlayer === undefined) {
-          this.endTurn();
+          this.endRound();
         }
       }
     }
@@ -131,9 +132,20 @@ export default class Engine {
     return engine;
   }
 
-  endTurn() {
-    this.turn += 1;
-    if (this.turn === 0) {
+  endRound() {
+  
+    if ( this.round < 6 ) {
+      this.beginRound();
+
+    } else
+    {
+      //TODO end game
+    }
+  };
+
+  beginRound() {
+    this.round += 1;
+    if (this.round === 0) {
       // Setup round - add Ivits to the end, before third Xenos
       const setupTurnOrder = this.players
         .filter(pl => pl.faction !== Faction.Ivits)
@@ -154,14 +166,12 @@ export default class Engine {
       if (posIvits !== -1) {
         this.turnOrder.push(posIvits as PlayerEnum);
       }
-    } else if (this.turn === 1 || this.turn === -1) {
-      // First round or faction selection the players are in regular order
-      this.turnOrder = this.players.map((pl, i) => i as PlayerEnum);
     } else {
-      // The players play in the order in which they passed
-      this.turnOrder = this.passedPlayers;
+      // The players play in the order in which they passed or 
+      // First round or faction selection the players are in regular order
+      this.turnOrder = (this.round === 1 || this.round === -1) ? this.players.map((pl, i) => i as PlayerEnum) :
+      this.passedPlayers;
       this.passedPlayers = [];
-      //TODO manage also turn 1
       for (const player of this.playersInOrder()) {
         player.receiveIncome();
       }
@@ -174,7 +184,7 @@ export default class Engine {
   /** Next player to make a move, after current player makes their move */
   moveToNextPlayer(): PlayerEnum {
     if (
-      this.turn <= 0 &&
+      this.round <= 0 &&
       this.currentPlayerTurnOrderPos + 1 === this.turnOrder.length
     ) {
       // all players played a one round only turn (faction selection and initial buildings)

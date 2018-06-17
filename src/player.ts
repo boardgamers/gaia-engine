@@ -156,4 +156,8 @@ export default class Player {
       this.data.gainRewards(event.rewards);
     }
   }
+
+  executeRoundBooster() {
+    //TODO turn end round booster effects and managements
+  }
 }

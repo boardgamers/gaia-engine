@@ -12,11 +12,11 @@ export default interface AvailableCommand {
 
 export function generate(engine: Engine): AvailableCommand[] {
   // init game
-  if (engine.turn == -2) {
+  if (engine.round == -2) {
     return [{ name: Command.Init }];
   }
   // faction selection
-  if (engine.turn == -1 ) {
+  if (engine.round == -1 ) {
     return [
       {
         name: Command.ChooseFaction,
@@ -31,7 +31,7 @@ export function generate(engine: Engine): AvailableCommand[] {
   }
 
   // initial buuildings
-  if (engine.turn == 0) {
+  if (engine.round == 0) {
     const player = engine.currentPlayer;
     const planet = engine.player(player).planet;
     const buildings = [];
