@@ -83,11 +83,7 @@ describe("Engine", () => {
     p1 build m -7x2
     p1 build ts 4x0
     p2 build ts -4x3
-<<<<<<< HEAD
-    p2 pass    
-=======
     p2 pass
->>>>>>> master
     `);
     expect(() => new Engine(moves)).to.throw(AssertionError);
   })
