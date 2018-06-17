@@ -19,11 +19,7 @@ export interface FactionBoardRaw {
   };
   [Building.Academy1]?: {
     cost?: string,
-    income?: string
-  };
-  academy2?: {
-    cost?: string,
-    income?: string
+    income?: string[]
   };
   [Building.Academy2]?: {
     cost?: string,
@@ -89,11 +85,7 @@ export class FactionBoard {
   };
   [Building.Academy1]: {
     cost: Reward[],
-    income: Event
-  };
-  academy2: {
-    cost: Reward[],
-    income: Event
+    income: Event[]
   };
   [Building.Academy2]: {
     cost: Reward[],
