@@ -246,6 +246,26 @@ export function generate(engine: Engine): AvailableCommand[] {
         }
       } // end add buildings
 
+      // Add federations
+      {
+        const possibleTiles = Object.keys(engine.federations).filter(key => engine.federations[key] > 0);
+
+        if (possibleTiles.length > 0) {
+          const possibleFederations = engine.player(player).availableFederations(engine.map);
+
+          if (possibleFederations.length > 0) {
+            commands.push({
+              name: Command.FormFederation,
+              player,
+              data: {
+                federations: possibleTiles,
+                locations: possibleFederations.map(arr => arr.map(hex => hex.toString()).sort().join(','))
+              }
+            });
+          }
+        }
+      }
+
       // Upgrade research
       const tracks = engine.possibleResearchAreas( player, UPGRADE_RESEARCH_COST)
    

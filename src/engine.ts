@@ -43,6 +43,9 @@ export default class Engine {
   advTechTiles: {
     [key in AdvTechTilePos]?: {tile: AdvTechTile; numTiles: number}
   } = {};
+  federations: {
+    [key in Federation]?: number
+  } = {};
   terraformingFederation: Federation;
   availableCommands: AvailableCommand[] = [];
   round: number = Round.Init;
@@ -444,7 +447,6 @@ export default class Engine {
       }
     }
   }
-  
 
   playersInOrder(): Player[] {
     return this.turnOrder.map(i => this.players[i]);
@@ -476,6 +478,11 @@ export default class Engine {
     });
 
     this.terraformingFederation = shuffleSeed.shuffle(Object.values(Federation), this.map.rng()).slice(0,1);
+    for (const federation of Object.values(Federation)) {
+      if (federation !== Federation.FederationGleens) {
+        this.federations[federation] = federation === this.terraformingFederation ? 2: 3;
+      }
+    }
     
     this.players = [];
     
