@@ -140,10 +140,14 @@ export default class PlayerData extends EventEmitter {
       case Resource.VictoryPoint: return this.victoryPoints >= reward.count;
       case Resource.Qic: return this.qics >= reward.count;
       case Resource.None: return true;
-      case Resource.GainToken: return this.power.bowl1 + this.power.bowl2 + this.power.bowl3 >= reward.count;
+      case Resource.GainToken: return this.discardablePowerTokens() >= reward.count;
     }
 
     return false;
+  }
+
+  discardablePowerTokens(): number {
+    return this.power.bowl1 + this.power.bowl2 + this.power.bowl3;
   }
 
   /**

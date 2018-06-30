@@ -145,8 +145,8 @@ export default class Engine {
     engine.round = data.round;
     engine.availableCommands = data.availableCommands;
     engine.map = SpaceMap.fromData(data.map);
-    for (let player of data.players) {
-      engine.players.push(new Player());
+    for (const player of data.players) {
+      engine.players.push(Player.fromData(player));
     }
 
     return engine;
@@ -480,7 +480,7 @@ export default class Engine {
     this.players = [];
     
     for (let i = 0; i < nbPlayers; i++) {
-      this.players.push(new Player());
+      this.players.push(new Player(i));
     }
   }
 

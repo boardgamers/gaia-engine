@@ -5,13 +5,17 @@ import { factionBoard, FactionBoard } from './faction-boards';
 import * as _ from 'lodash';
 import factions from './factions';
 import Reward from './reward';
-import { CubeCoordinates } from 'hexagrid';
+import { CubeCoordinates, Hex } from 'hexagrid';
 import researchTracks from './research-tracks';
 import { terraformingStepsRequired } from './planets';
 import boosts from './tiles/boosters';
+import { Player as PlayerEnum } from './enums';
 import { stdBuildingValue } from './buildings';
+import SpaceMap from './map';
+import { GaiaHexData } from '..';
 
 const TERRAFORMING_COST = 3;
+const FEDERATION_COST = 7;
 
 export default class Player {
   faction: Faction = null;
@@ -26,7 +30,7 @@ export default class Player {
     [Operator.Special]: []
   };
 
-  constructor() {
+  constructor(public player: PlayerEnum) {
     this.data.on('advance-research', track => this.onResearchAdvanced(track));
   }
 
@@ -39,7 +43,7 @@ export default class Player {
   }
 
   static fromData(data: any) {
-    const player = new Player();
+    const player = new Player(data.player);
 
     if (data.faction) {
       player.loadFaction(data.faction);
@@ -188,7 +192,6 @@ export default class Player {
     }
   }
 
-
   receiveAdvanceResearchTriggerIncome() {
     for (const event of this.events[Operator.Trigger]) {
       if (event.condition === Condition.AdvanceResearch) {
@@ -211,6 +214,7 @@ export default class Player {
   buildingValue(building: Building, planet: Planet){
     const baseValue =  stdBuildingValue(building);
 
+    // Space stations or gaia-formers do not get any bonus
     if (baseValue === 0) {
       return 0;
     }
@@ -225,4 +229,38 @@ export default class Player {
     return Math.min(possibleLeech, this.data.power.bowl1 * 2 + this.data.power.bowl2, this.data.victoryPoints + 1);
   }
 
+  availableFederations(map: SpaceMap) {
+    const excluded = map.excludedHexesForBuildingFederation(this.player);
+
+    const hexes = this.data.occupied.map(coord => map.grid.get(coord.q, coord.r)).filter(hex => !excluded.has(hex));
+    const values = hexes.map(node => this.buildingValue(node.data.building, node.data.planet));
+
+    const combinations = this.possibleCombinationsForFederations(_.zipWith(hexes, values, (val1, val2) => ({hex: val1, value: val2})));
+    const maxSatellites = this.data.discardablePowerTokens();
+    
+    // We now have several combinations of buildings that can form federations
+    // We need to see if they can be connected
+  }
+
+  possibleCombinationsForFederations(nodes: Array<{hex: Hex<GaiaHexData>, value: number}>, toReach = FEDERATION_COST): Hex<GaiaHexData>[][] {
+    const ret: Hex<GaiaHexData>[][] = [];
+
+    for (let i = 0; i < nodes.length; i ++) {
+      if (nodes[i].value === 0) {
+        continue;
+      }
+
+      if (nodes[i].value >= toReach) {
+        ret.push([nodes[i].hex]);
+        continue;
+      }
+
+      for (const possibility of this.possibleCombinationsForFederations(nodes.slice(i+1), toReach - nodes[i].value)) {
+        possibility.push(nodes[i].hex);
+        ret.push(possibility);
+      }
+    }
+
+    return ret;
+  }
 }
