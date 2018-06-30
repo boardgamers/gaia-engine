@@ -229,7 +229,7 @@ export default class Player {
     return Math.min(possibleLeech, this.data.power.bowl1 * 2 + this.data.power.bowl2, this.data.victoryPoints + 1);
   }
 
-  availableFederations(map: SpaceMap) {
+  availableFederations(map: SpaceMap): Hex<GaiaHexData>[][] {
     const excluded = map.excludedHexesForBuildingFederation(this.player);
 
     const hexes = this.data.occupied.map(coord => map.grid.get(coord.q, coord.r)).filter(hex => !excluded.has(hex));
@@ -240,6 +240,153 @@ export default class Player {
     
     // We now have several combinations of buildings that can form federations
     // We need to see if they can be connected
+    let federations: Array<{occupied: Set<Hex<GaiaHexData>>, satellites: number, planets: number}> = [];
+
+    for (const combination of combinations) {
+      federations.push(...getFederations(combination));
+    }
+
+    /** Federation with the least satellites */
+    const minFed1 = _.minBy(federations, fed => fed.planets + fed.satellites * 1000);
+    /** Federation with the least planets */
+    const minFed2 = _.minBy(federations, fed => fed.planets * 1000 + fed.satellites);
+
+    /** Remove federations which have at least one planet & one satellite more than another */
+    federations = federations.filter(fed => {
+      if (fed.planets > minFed1.planets && fed.satellites > minFed1.satellites) {
+        return false;
+      }
+      if (fed.planets > minFed2.planets && fed.satellites > minFed2.satellites) {
+        return false;
+      }
+      return true;
+    });
+
+    /** Remove federations which are included in another (i.e. have an extra satellite but same number of planets) */
+    const toRemove = [];
+    for (let i = 0; i < federations.length; i++) {
+      for (let j = 1; j < federations.length; j++) {
+        const [fed1, fed2] = _.sortBy([federations[i], federations[j]], fed => fed.occupied.size);
+        const included = [...fed1.occupied.values()].every(val => fed2.occupied.has(val));
+
+        if (included) {
+          toRemove.push(fed1);
+        }
+      }
+    }
+    federations = federations.filter(fed => !toRemove.includes(fed));
+
+    var getFederations = (buildings: Hex<GaiaHexData>[]) => {
+      let solutions: HexGroup[] = [];
+      const hexesWithBuildings = new Set(hexes);
+
+      const [firstBuilding, ...otherBuildings] = buildings;
+
+      class HexGroup {
+        constructor(other?: HexGroup) {
+          if (other) {
+            this.toReach = new Set(other.toReach);
+            this.satellites = other.satellites;
+            this.occupied = new Set(other.occupied);
+            this.planets = other.planets;
+          }
+        }
+
+        toString() {
+          return [...this.occupied].map(x => x.toString()).join(",");
+        }
+
+        add(hex: Hex<GaiaHexData>) {
+          if (this.occupied.has(hex)) {
+            return;
+          }
+
+          this.occupied.add(hex);
+          this.toReach.delete(hex);
+
+          if (hex.data.planet !== Planet.Empty) {
+            this.planets += 1;
+          }
+
+          for (const hexWithBuilding of hexesWithBuildings) {
+            if (CubeCoordinates.distance(hex, hexWithBuilding) === 1) {
+              this.add(hexWithBuilding);
+            }
+          }
+        }
+
+        toReach: Set<Hex<GaiaHexData>> = new Set();
+        occupied: Set<Hex<GaiaHexData>> = new Set();
+        satellites: number = 0;
+        // Strict interpretation of the rules says planets  might be buildings instead (including space stations)
+        planets: number = 0;
+      }
+      
+      const startingHexGroup = new HexGroup();
+
+      for (const building of otherBuildings) {
+        startingHexGroup.toReach.add(building);
+      }
+      startingHexGroup.add(firstBuilding);
+
+      // If the starting buildings are already connected
+      if (startingHexGroup.toReach.size === 0) {
+        return [startingHexGroup];
+      }
+
+      type HexGroupMap = Map<string, HexGroup>;
+      let minSatellites = maxSatellites;
+      const hexGroups: HexGroupMap = new Map([[startingHexGroup.toString(), startingHexGroup]]);
+
+      let toExplore: HexGroupMap = new Map(hexGroups.entries());
+      let nextToExplore: HexGroupMap = new Map();
+
+      while (toExplore.size > 0) {
+        for (const [_, hexGroup] of toExplore) {
+          if (hexGroup.satellites >= minSatellites) {
+            // We are going to add one satellite anyway, which will 
+            // put us over the limit
+            continue;
+          }
+          const exploredNeighbours: Set<Hex<GaiaHexData>> = new Set();
+          for (const hex of hexGroup.occupied) {
+            for (const neighbour of map.grid.neighbours(hex.q, hex.r)) {
+              if (excluded.has(neighbour) || exploredNeighbours.has(neighbour)) {
+                continue;
+              }
+              exploredNeighbours.add(neighbour);
+              const newHexGroup = new HexGroup(hexGroup); 
+              newHexGroup.add(neighbour);
+              newHexGroup.satellites += 1;
+
+              const key = newHexGroup.toString();
+              if (hexGroups.has(key)) {
+                continue;
+              }
+              hexGroups.set(key, newHexGroup);
+
+              if (newHexGroup.toReach.size === 0) {
+                if (minSatellites === hexGroup.satellites) {
+                  solutions.push(newHexGroup);
+                } else if (minSatellites < hexGroup.satellites) {
+                  minSatellites = hexGroup.satellites;
+                  solutions = [newHexGroup];
+                }
+              } else {
+                nextToExplore.set(key, newHexGroup);
+              }
+            }
+          }
+        }
+
+        toExplore = nextToExplore;
+        nextToExplore = new Map();
+      }
+
+      return solutions;
+    }
+
+    return federations.map(fed => [...fed.occupied.values()]);
   }
 
   possibleCombinationsForFederations(nodes: Array<{hex: Hex<GaiaHexData>, value: number}>, toReach = FEDERATION_COST): Hex<GaiaHexData>[][] {
