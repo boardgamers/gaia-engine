@@ -29,6 +29,8 @@ export enum Resource {
   Qic = "q",
   ChargePower = "pw",
   GainToken = "t",
+  DiscartPower = "dpw",
+  SpendPower = "spw",
   VictoryPoint = "vp",
   TerraformStep = "d",
   RangeExtension = "r",

@@ -113,6 +113,7 @@ export default class PlayerData extends EventEmitter {
       case Resource.VictoryPoint: this.victoryPoints += count; return;
       case Resource.Qic: this.qics += count; return;
       case Resource.GainToken: count >= 0 ? this.power.bowl1 += count : this.movePowerToGaia(-count); return;
+      case Resource.SpendPower: this.spendPower(count); return;
       case Resource.ChargePower: this.chargePower(count); return;
       case Resource.RangeExtension: this.range += count; return;
       case Resource.GaiaFormer: this.gaiaformers +=count; return;
@@ -141,6 +142,7 @@ export default class PlayerData extends EventEmitter {
       case Resource.Qic: return this.qics >= reward.count;
       case Resource.None: return true;
       case Resource.GainToken: return this.power.bowl1 + this.power.bowl2 + this.power.bowl3 >= reward.count;
+      case Resource.SpendPower: return this.power.bowl3 >= reward.count;
     }
 
     return false;
@@ -166,6 +168,11 @@ export default class PlayerData extends EventEmitter {
     
     //returns real charged power
     return bowl1ToUp + bowl2ToUp;
+  }
+
+  spendPower(power: number)  {  
+      this.power.bowl3 -= power;
+      this.power.bowl1 += power;
   }
 
   movePowerToGaia(power: number) {
