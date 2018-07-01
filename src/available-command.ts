@@ -1,12 +1,11 @@
-import { Command, Faction, Building, ResearchField, Planet, Round, Booster, Resource, Player, TechTile, TechTilePos, AdvTechTilePos } from './enums';
+import { Command, Faction, Building, Planet, Round, Booster, Resource, FreeAction} from './enums';
 import Engine from './engine';
 import * as _ from 'lodash';
 import factions from './factions';
 import * as assert from "assert";
 import { upgradedBuildings } from './buildings';
-import * as research from './research-tracks';
 import Reward from './reward';
-import { PlayerData } from '..';
+import freeActions from './actions';
 
 const ISOLATED_DISTANCE = 3;
 const UPGRADE_RESEARCH_COST = "4k";
@@ -257,6 +256,22 @@ export function generate(engine: Engine): AvailableCommand[] {
         });
       }
 
+      // free action 
+      const acts = []
+      for (const act of Object.values(FreeAction)) {
+        if (engine.player(player).data.canPay(freeActions[act].cost)) {
+          acts.push({ act })
+        };
+      };
+
+      if (acts.length > 0) {
+        commands.push({
+          name: Command.FreeAction,
+          player,
+          data: { acts }
+        });
+      }
+    
       return commands;
     }
   }

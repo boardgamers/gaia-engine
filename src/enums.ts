@@ -119,7 +119,8 @@ export enum Command {
   Leech = "leech",
   DeclineLeech = "decline",
   BurnPower = "burn",
-  PlaceLostPlanet  = "lostPlanet"
+  PlaceLostPlanet  = "lostPlanet",
+  FreeAction = "freeact"
 }
 
 export enum Player {
@@ -216,4 +217,16 @@ export enum Federation {
   Federation5= "federation5",
   Federation6= "federation6",
   FederationGleens= "federationGleens"
+}
+
+export enum FreeAction {
+  FreeAction1= "freeaction1",
+  FreeAction2= "freeaction2",
+  FreeAction3= "freeaction3",
+  FreeAction4= "freeaction4",
+  FreeAction5= "freeaction5",
+  FreeAction6= "freeaction6",
+  FreeAction7= "freeaction7",
+  FreeAction8= "freeaction8",
+  FreeAction9= "freeaction9"
 }

@@ -17,11 +17,13 @@ import {
   TechTilePos,
   AdvTechTile,
   AdvTechTilePos,
-  Federation
+  Federation,
+  FreeAction
 } from './enums';
 import { CubeCoordinates } from 'hexagrid';
 import Event from './events';
 import techs from './tiles/techs';
+import freeActions from './actions'
 import researchTracks from './research-tracks'
 
 const ISOLATED_DISTANCE = 3;
@@ -31,6 +33,7 @@ import AvailableCommand, {
   generate as generateAvailableCommands
 } from './available-command';
 import Reward from './reward';
+
 
 export default class Engine {
   map: SpaceMap;
@@ -429,11 +432,13 @@ export default class Engine {
       this.currentPlayer = this.roundSubCommands[0].player;
     } else {
       if (playRounds && command !== Command.Pass) {
-        const next = (this.currentPlayerTurnOrderPos + 1) % this.turnOrder.length;
+        // if freeAction current player stays current player
+        const next = command !== Command.FreeAction ? (this.currentPlayerTurnOrderPos + 1) % this.turnOrder.length : this.currentPlayerTurnOrderPos;
         this.currentPlayerTurnOrderPos = next;
         this.currentPlayer = this.turnOrder[next];
         return;
       } else {
+        // not playRounds or pass
         const playerPos = this.currentPlayerTurnOrderPos;
         if (command === Command.Pass) {
           this.passedPlayers.push(this.currentPlayer);
@@ -636,6 +641,17 @@ export default class Engine {
     }
 
     throw new Error(`Impossible to execute build command at ${location}`);
+  }
+
+  [Command.FreeAction](player: PlayerEnum, act: FreeAction ) {
+    const { actions } = this.availableCommand(player, Command.FreeAction).data;
+    
+    assert(actions.includes(act),
+      `${act} is not in the available free actions`
+    );
+
+    this.players[player].data.payCost(new Reward(freeActions[act].cost));
+    this.players[player].data.gainReward(new Reward(freeActions[act].income));
   }
 
 }
