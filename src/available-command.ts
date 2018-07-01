@@ -119,7 +119,7 @@ export function generate(engine: Engine): AvailableCommand[] {
           }
 
           case Command.UpgradeResearch: {
-            const tracks = engine.possibleResearchAreas(player, "", subCommand.data.destResearchArea)
+            const tracks = engine.possibleResearchAreas(player, "", subCommand.data)
 
             if (tracks.length > 0) {
               commands.push({
