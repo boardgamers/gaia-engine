@@ -15,14 +15,14 @@ export default class PlayerData extends EventEmitter {
   qics: number = 0;
   knowledge: number = 0;
   power: {
-    bowl1: number,
-    bowl2: number,
-    bowl3: number,
+    area1: number,
+    area2: number,
+    area3: number,
     gaia: number
   } = {
-    bowl1: 0,
-    bowl2: 0,
-    bowl3: 0,
+    area1: 0,
+    area2: 0,
+    area3: 0,
     gaia: 0
   };
   [Building.Mine]: number = 0;
@@ -112,8 +112,10 @@ export default class PlayerData extends EventEmitter {
       case Resource.Knowledge: this.knowledge = Math.min(MAX_KNOWLEDGE, this.knowledge + count); return;
       case Resource.VictoryPoint: this.victoryPoints += count; return;
       case Resource.Qic: this.qics += count; return;
-      case Resource.GainToken: count >= 0 ? this.power.bowl1 += count : this.movePowerToGaia(-count); return;
-      case Resource.SpendPower: this.spendPower(count); return;
+      case Resource.GainTokenArea1: this.power.area1 += count; return;
+      case Resource.GainTokenArea2: this.power.area2 += count; return;
+      case Resource.GainTokenArea3: this.power.area3 += count; return;
+      case Resource.GainTokenGaiaArea:  this.movePowerToGaia(-count); return;
       case Resource.ChargePower: this.chargePower(count); return;
       case Resource.RangeExtension: this.range += count; return;
       case Resource.GaiaFormer: this.gaiaformers +=count; return;
@@ -141,63 +143,65 @@ export default class PlayerData extends EventEmitter {
       case Resource.VictoryPoint: return this.victoryPoints >= reward.count;
       case Resource.Qic: return this.qics >= reward.count;
       case Resource.None: return true;
-      case Resource.GainToken: return this.power.bowl1 + this.power.bowl2 + this.power.bowl3 >= reward.count;
-      case Resource.SpendPower: return this.power.bowl3 >= reward.count;
+      case Resource.GainTokenArea1: return this.power.area1 >= reward.count;
+      case Resource.GainTokenArea2: return this.power.area2 >= reward.count;
+      case Resource.GainTokenArea3: return this.power.area3 >= reward.count;
+      case Resource.GainTokenGaiaArea: return this.power.area1 + this.power.area2 + this.power.area3 >= reward.count;
     }
 
     return false;
   }
 
   /**
-   * Move power tokens from a bowl to an upper one, depending on the amount
+   * Move power tokens from a power area to an upper one, depending on the amount
    * of power chaged
    * 
    * @param power Power charged
    */
   chargePower(power: number, checkOnly : boolean = false) : number {
-    const bowl1ToUp = Math.min(power, this.power.bowl1);
-    power -= bowl1ToUp;
-    const bowl2ToUp = Math.min(power, this.power.bowl2 + bowl1ToUp );
+    const area1ToUp = Math.min(power, this.power.area1);
+    power -= area1ToUp;
+    const area2ToUp = Math.min(power, this.power.area2 + area1ToUp );
 
     if (!checkOnly) {
-      this.power.bowl1 -= bowl1ToUp;
-      this.power.bowl2 += bowl1ToUp;
-      this.power.bowl2 -= bowl2ToUp;
-      this.power.bowl3 += bowl2ToUp;
+      this.power.area1 -= area1ToUp;
+      this.power.area2 += area1ToUp;
+      this.power.area2 -= area2ToUp;
+      this.power.area3 += area2ToUp;
     }
     
     //returns real charged power
-    return bowl1ToUp + bowl2ToUp;
+    return area1ToUp + area2ToUp;
   }
 
   spendPower(power: number)  {  
-      this.power.bowl3 -= power;
-      this.power.bowl1 += power;
+      this.power.area3 -= power;
+      this.power.area1 += power;
   }
 
   movePowerToGaia(power: number) {
-    const bowl1ToGaia = Math.min(power, this.power.bowl1);
-    this.power.gaia += bowl1ToGaia;
-    this.power.bowl1 -= bowl1ToGaia;
-    power -= bowl1ToGaia;
+    const area1ToGaia = Math.min(power, this.power.area1);
+    this.power.gaia += area1ToGaia;
+    this.power.area1 -= area1ToGaia;
+    power -= area1ToGaia;
 
     if (power <= 0) {
       return;
     }
 
-    const bowl2ToGaia = Math.min(power, this.power.bowl2);
-    this.power.gaia += bowl2ToGaia;
-    this.power.bowl2 -= bowl2ToGaia;
-    power -= bowl2ToGaia
+    const area2ToGaia = Math.min(power, this.power.area2);
+    this.power.gaia += area2ToGaia;
+    this.power.area2 -= area2ToGaia;
+    power -= area2ToGaia
 
     if (power <= 0) {
       return;
     }
 
-    const bowl3ToGaia = Math.min(power, this.power.bowl2);
-    this.power.gaia += bowl3ToGaia;
-    power -= bowl3ToGaia
-    this.power.bowl3 -= bowl3ToGaia;
+    const area3ToGaia = Math.min(power, this.power.area2);
+    this.power.gaia += area3ToGaia;
+    power -= area3ToGaia
+    this.power.area3 -= area3ToGaia;
 
    if (power <= 0) {
       return;

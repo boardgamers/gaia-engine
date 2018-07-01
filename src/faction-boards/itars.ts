@@ -8,7 +8,7 @@ const itars: FactionBoardRaw = {
   [Building.Academy2]: {
     income: ["=>q"]
   },
-  income: ["3k,5o,15c,q", "+o,k,t"]
+  income: ["3k,5o,15c,q", "+o,k,t1"]
 };
 
 export default itars;

@@ -259,7 +259,7 @@ export function generate(engine: Engine): AvailableCommand[] {
       // free action 
       const acts = []
       for (const act of Object.values(FreeAction)) {
-        if (engine.player(player).data.canPay(freeActions[act].cost)) {
+        if (engine.player(player).data.canPay(Reward.parse(freeActions[act].cost))) {
           acts.push({ act })
         };
       };
@@ -271,7 +271,7 @@ export function generate(engine: Engine): AvailableCommand[] {
           data: { acts }
         });
       }
-    
+
       return commands;
     }
   }
