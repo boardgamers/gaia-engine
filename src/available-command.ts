@@ -1,4 +1,4 @@
-import { Command, Faction, Building, Planet, Round, Booster, Resource, FreeAction} from './enums';
+import { Command, Faction, Building, Planet, Round, Booster, Resource} from './enums';
 import Engine from './engine';
 import * as _ from 'lodash';
 import factions from './factions';
@@ -275,19 +275,33 @@ export function generate(engine: Engine): AvailableCommand[] {
         });
       }
 
-      // free action 
+      // free action - spend
       const acts = []
-      for (const act of Object.values(FreeAction)) {
-        if (engine.player(player).data.canPay(Reward.parse(freeActions[act].cost))) {
-          acts.push({ act })
+      for (let i = 0; i < freeActions.length; i++) {
+        if (engine.player(player).data.canPay(Reward.parse(freeActions[i].cost))) {
+          acts.push({ 
+            cost: freeActions[i].cost,
+            income: freeActions[i].income  
+          });
         };
       };
 
       if (acts.length > 0) {
         commands.push({
-          name: Command.FreeAction,
+          name: Command.Spend,
           player,
           data: { acts }
+        });
+      }
+    
+
+      //free action - burn
+      //TODO generate burn actions based on  Math.ceil( engine.player(player).data.power.area2 / 2)
+      if (engine.player(player).data.power.area2 >= 2) {
+        commands.push({
+          name: Command.BurnPower,
+          player,
+          data: Resource.BurnPower
         });
       }
 

@@ -17,22 +17,19 @@ import {
   TechTilePos,
   AdvTechTile,
   AdvTechTilePos,
-  Federation,
-  FreeAction
+  Federation
 } from './enums';
 import { CubeCoordinates } from 'hexagrid';
 import Event from './events';
 import techs from './tiles/techs';
-import freeActions from './actions'
-
-const ISOLATED_DISTANCE = 3;
-const LAST_RESEARCH_TILE = 5;
-
 import * as researchTracks from './research-tracks'
 import AvailableCommand, {
   generate as generateAvailableCommands
 } from './available-command';
 import Reward from './reward';
+
+
+const ISOLATED_DISTANCE = 3;
 
 
 export default class Engine {
@@ -641,15 +638,26 @@ export default class Engine {
     return;
   }
 
-  [Command.FreeAction](player: PlayerEnum, act: FreeAction ) {
-    const { actions } = this.availableCommand(player, Command.FreeAction).data;
-    
-    assert(actions.includes(act),
-      `${act} is not in the available free actions`
-    );
+  [Command.Spend](player: PlayerEnum, cost, income: string) {
+    const { actions } = this.availableCommand(player, Command.Spend).data;
 
-    this.players[player].data.payCost(new Reward(freeActions[act].cost));
-    this.players[player].data.gainReward(new Reward(freeActions[act].income));
+    for (const elem of actions) {
+      if (elem.cost === cost && elem.income === income) {
+        this.players[player].data.payCost(new Reward(cost));
+        this.players[player].data.gainReward(new Reward(income));
+        return;
+      }
+    }
+
+    assert(false, `spend ${cost} for ${income} is not allowed`
+    );
+  }
+
+  [Command.BurnPower](player: PlayerEnum, cost: string) {
+    const burn = this.availableCommand(player, Command.BurnPower).data;
+    assert(burn == cost, `Impossible to burn ${cost} power`);
+
+    this.players[player].data.payCost(new Reward(cost));
   }
 
   [Command.FormFederation](player: PlayerEnum, location: string, federation: Federation) {

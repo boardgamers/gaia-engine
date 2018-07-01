@@ -28,10 +28,8 @@ export enum Resource {
   Knowledge = "k",
   Qic = "q",
   ChargePower = "pw",
+  BurnPower = "b",
   GainToken = "t",
-  GainTokenArea1 = "t1",
-  GainTokenArea2 = "t2",
-  GainTokenArea3 = "t3",
   GainTokenGaiaArea = "tg",
   VictoryPoint = "vp",
   TerraformStep = "d",
@@ -135,6 +133,7 @@ export enum Command {
   Leech = "leech",
   DeclineLeech = "decline",
   BurnPower = "burn",
+  Spend = "spend",
   PlaceLostPlanet  = "lostPlanet",
   FreeAction = "freeact",
   FormFederation = "federation"
@@ -236,14 +235,3 @@ export enum Federation {
   FederationGleens= "federationGleens"
 }
 
-export enum FreeAction {
-  FreeAction1= "freeaction1",
-  FreeAction2= "freeaction2",
-  FreeAction3= "freeaction3",
-  FreeAction4= "freeaction4",
-  FreeAction5= "freeaction5",
-  FreeAction6= "freeaction6",
-  FreeAction7= "freeaction7",
-  FreeAction8= "freeaction8",
-  FreeAction9= "freeaction9"
-}

@@ -113,12 +113,10 @@ export default class PlayerData extends EventEmitter {
       case Resource.Knowledge: this.knowledge = Math.min(MAX_KNOWLEDGE, this.knowledge + count); return;
       case Resource.VictoryPoint: this.victoryPoints += count; return;
       case Resource.Qic: this.qics += count; return;
-      case Resource.GainToken:  this.discartPower(count, Resource.GainToken); return;
-      case Resource.GainTokenArea1: this.power.area1 += count; return;
-      case Resource.GainTokenArea2: this.power.area2 += count; return;
-      case Resource.GainTokenArea3: this.power.area3 += count; return;
+      case Resource.GainToken: count>0 ?  this.power.area1 += count : this.discartPower(count, Resource.GainToken); return;
       case Resource.GainTokenGaiaArea:  this.discartPower(count, Resource.GainTokenGaiaArea); return;
-      case Resource.ChargePower: this.chargePower(count); return;
+      case Resource.ChargePower: count>0 ? this.chargePower(count) : this.spendPower(count); return;
+      case Resource.BurnPower: this.burnPower(count); return;
       case Resource.RangeExtension: this.range += count; return;
       case Resource.GaiaFormer: this.gaiaformers +=count; return;
       case Resource.TerraformStep: this.terraformSteps +=count; return;
@@ -146,10 +144,8 @@ export default class PlayerData extends EventEmitter {
       case Resource.Qic: return this.qics >= reward.count;
       case Resource.None: return true;
       case Resource.GainToken: return this.discardablePowerTokens() >= reward.count;
-      case Resource.GainTokenArea1: return this.power.area1 >= reward.count;
-      case Resource.GainTokenArea2: return this.power.area2 >= reward.count;
-      case Resource.GainTokenArea3: return this.power.area3 >= reward.count;
       case Resource.GainTokenGaiaArea: return this.discardablePowerTokens() >= reward.count;
+      case Resource.ChargePower: return true;
     }
 
     return false;
@@ -195,6 +191,11 @@ export default class PlayerData extends EventEmitter {
       this.power.gaia += area1ToGaia + area2ToGaia + area3ToGaia;
     }
 
+  }
+
+  burnPower(power: number) {
+    this.power.area2 -= 2 * power;
+    this.power.area3 += power;
   }
 
   advanceResearch(which: ResearchField, count: number) {

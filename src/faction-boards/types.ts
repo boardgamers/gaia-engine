@@ -65,7 +65,7 @@ const defaultBoard: FactionBoardRaw = {
   },
   [Building.PlanetaryInstitute]: {
     cost: "6c,4o",
-    income: ["+4pw,t1"]
+    income: ["+4pw,t"]
   },
   [Building.GaiaFormer]: {
     cost: "6tg",
