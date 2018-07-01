@@ -402,8 +402,8 @@ export default class Engine {
     const spaces = [];
 
     for (const hex of this.map.toJSON()) {
-      // exclude empty planets and other players' planets
-      if (hex.data.planet !== Planet.Empty) {
+      // exclude existing planets, satellites and space stations
+      if (hex.data.planet !== Planet.Empty || hex.data.federations || hex.data.building) {
         continue;
       }
       //TODO: check no satelittes, nor space stations
