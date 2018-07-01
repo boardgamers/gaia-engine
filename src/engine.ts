@@ -272,7 +272,7 @@ export default class Engine {
             leech = Math.max(leech, pl.buildingValue(this.map.grid.get(loc.q, loc.r).data.building, this.map.grid.get(loc.q, loc.r).data.planet))
           }
         }
-        leech = Math.min(leech, pl.maxLeech(leech));
+        leech = pl.maxLeech(leech);
         if (leech > 0) {
           this.roundSubCommands.push({
             name: Command.Leech,
