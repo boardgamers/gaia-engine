@@ -24,11 +24,11 @@ import { CubeCoordinates } from 'hexagrid';
 import Event from './events';
 import techs from './tiles/techs';
 import freeActions from './actions'
-import researchTracks from './research-tracks'
 
 const ISOLATED_DISTANCE = 3;
 const LAST_RESEARCH_TILE = 5;
 
+import * as researchTracks from './research-tracks'
 import AvailableCommand, {
   generate as generateAvailableCommands
 } from './available-command';
@@ -46,6 +46,9 @@ export default class Engine {
   } = {};
   advTechTiles: {
     [key in AdvTechTilePos]?: {tile: AdvTechTile; numTiles: number}
+  } = {};
+  federations: {
+    [key in Federation]?: number
   } = {};
   terraformingFederation: Federation;
   availableCommands: AvailableCommand[] = [];
@@ -149,8 +152,8 @@ export default class Engine {
     engine.round = data.round;
     engine.availableCommands = data.availableCommands;
     engine.map = SpaceMap.fromData(data.map);
-    for (let player of data.players) {
-      engine.players.push(new Player());
+    for (const player of data.players) {
+      engine.players.push(Player.fromData(player));
     }
 
     return engine;
@@ -339,7 +342,7 @@ export default class Engine {
   advanceResearchAreaPhase(player: PlayerEnum, tile: string) {
     // if stdTech in a free position or advTech, any researchArea
     let destResearchArea = "";
-    for (const tilePos of Object.values(TechTilePos))
+    for (const tilePos of Object.values(TechTilePos)) {
       if (this.techTiles[tilePos].tile === tile) {
         if (tilePos !== TechTilePos.Free1 &&
           tilePos !== TechTilePos.Free2 &&
@@ -348,12 +351,13 @@ export default class Engine {
           break;
         }
       }
+    }
 
     this.roundSubCommands.unshift({
       name: Command.UpgradeResearch,
       player: player,
       data: destResearchArea
-    })
+    });
 
   }
 
@@ -370,7 +374,7 @@ export default class Engine {
         }
 
         //already on top
-        if (data.research[field] === LAST_RESEARCH_TILE) {
+        if (data.research[field] === researchTracks.lastTile(field)) {
           continue;
         }
 
@@ -378,18 +382,17 @@ export default class Engine {
         const destTile = data.research[field] + 1;
 
         // To go from 4 to 5, we need to flip a federation and nobody inside
-        if (data.research[field] + 1 === LAST_RESEARCH_TILE) {
-          if (data.greenFederations === 0) {
-            continue;
-          }
-          if (this.playersInOrder().filter(pl => pl.data.research[field] === LAST_RESEARCH_TILE).length > 0) {
-            continue;
-          };
+        if (researchTracks.keyNeeded(field, destTile) && data.greenFederations === 0) {
+          continue;
         }
+
+        if (this.playersInOrder().some(pl => pl.data.research[field] === researchTracks.lastTile(field))) {
+          continue;
+        };
 
         tracks.push({
           field,
-          to: data.research[field],
+          to: destTile,
           cost: cost
         });
 
@@ -404,8 +407,8 @@ export default class Engine {
     const spaces = [];
 
     for (const hex of this.map.toJSON()) {
-      // exclude empty planets and other players' planets
-      if (hex.data.planet !== Planet.Empty) {
+      // exclude existing planets, satellites and space stations
+      if (hex.data.planet !== Planet.Empty || hex.data.federations || hex.data.building) {
         continue;
       }
       //TODO: check no satelittes, nor space stations
@@ -450,7 +453,6 @@ export default class Engine {
       }
     }
   }
-  
 
   playersInOrder(): Player[] {
     return this.turnOrder.map(i => this.players[i]);
@@ -482,11 +484,16 @@ export default class Engine {
     });
 
     this.terraformingFederation = shuffleSeed.shuffle(Object.values(Federation), this.map.rng()).slice(0,1);
+    for (const federation of Object.values(Federation)) {
+      if (federation !== Federation.FederationGleens) {
+        this.federations[federation] = federation === this.terraformingFederation ? 2: 3;
+      }
+    }
     
     this.players = [];
     
     for (let i = 0; i < nbPlayers; i++) {
-      this.players.push(new Player());
+      this.players.push(new Player(i));
     }
   }
 
@@ -522,16 +529,10 @@ export default class Engine {
         const hex = this.map.grid.get(q, r);
 
         this.player(player).build(
-          elem.upgradedBuilding,
           building,
-          hex.data.planet,
-          Reward.parse(elem.cost),
-          {q, r, s}
+          hex,
+          Reward.parse(elem.cost)
         );
-
-        hex.data.building = building;
-        hex.data.player = player;
-
 
         this.leechingPhase(player, {q, r, s} );
 
@@ -557,14 +558,17 @@ export default class Engine {
     data.payCosts(Reward.parse(track.cost));
     data.gainReward(new Reward(`${Command.UpgradeResearch}-${field}`));
 
-    if (field === ResearchField.Terraforming && data.research[field] === LAST_RESEARCH_TILE) {
-      //gets federation token
-      //TODO
-    }
-
-    if (field === ResearchField.Navigation && data.research[field] === LAST_RESEARCH_TILE) {
-      //gets LostPlanet
-      this.lostPlanetPhase(player);
+    if (data.research[field] === researchTracks.lastTile(field)) {
+      if (field === ResearchField.Terraforming) {
+        //gets federation token
+        if (this.terraformingFederation) {
+          data.gainFederationToken(this.terraformingFederation);
+          this.terraformingFederation = undefined;
+        }
+      } else if (field === ResearchField.Navigation) {
+        //gets LostPlanet
+        this.lostPlanetPhase(player);
+      }
     }
   }
 
@@ -623,24 +627,18 @@ export default class Engine {
     const avail = this.availableCommand(player, Command.Build);
     const { spaces } = avail.data;
 
-    for (const elem of spaces) {
-      if (elem.coordinates === location) {
-        const { q, r, s } = CubeCoordinates.parse(location);
-        const hex = this.map.grid.get(q, r);
-        hex.data.planet = Planet.Lost;
-        hex.data.building = Building.Mine;
-        hex.data.player = player;
-
-        this.players[player].data.occupied = _.uniqWith([].concat(this.players[player].data.occupied, location), _.isEqual)
-  
-        this.players[player].receiveBuildingTriggerIncome(Building.Mine, Planet.Lost)
-        this.leechingPhase(player, { q, r, s });
-
-        return;
-      }
+    if (spaces.indexOf(location) === -1) {
+      throw new Error(`Impossible to execute build command at ${location}`);
     }
 
-    throw new Error(`Impossible to execute build command at ${location}`);
+    const { q, r, s } = CubeCoordinates.parse(location);
+    const hex = this.map.grid.get(q, r);
+    hex.data.planet = Planet.Lost;
+
+    this.player(player).build(Building.Mine, hex, []);
+    this.leechingPhase(player, { q, r, s });
+
+    return;
   }
 
   [Command.FreeAction](player: PlayerEnum, act: FreeAction ) {
@@ -654,4 +652,30 @@ export default class Engine {
     this.players[player].data.gainReward(new Reward(freeActions[act].income));
   }
 
+  [Command.FormFederation](player: PlayerEnum, location: string, federation: Federation) {
+    const avail = this.availableCommand(player, Command.FormFederation);
+
+    if (!avail.data.locations.includes(location)) {
+      throw new Error(`Impossible to form federation at ${location}`);
+    }
+    if (!avail.data.federations.includes(federation)) {
+      throw new Error(`Impossible to form federation ${federation}`);
+    }
+
+    const pl = this.player(player);
+
+    pl.data.gainFederationToken(federation);
+    this.federations[federation] -= 1;
+
+    let nSatellites = 0;
+    const hexes = location.split(',').map(str => this.map.grid.getS(str));
+    for (const hex of hexes) {
+      hex.data.federations.push(player);
+      // TODO lantids
+      if (hex.data.player !== player) {
+        nSatellites++;
+      }
+    }
+    pl.data.payCost(new Reward(nSatellites, Resource.GainToken));
+  }
 }

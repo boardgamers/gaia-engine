@@ -28,6 +28,7 @@ export enum Resource {
   Knowledge = "k",
   Qic = "q",
   ChargePower = "pw",
+  GainToken = "t",
   GainTokenArea1 = "t1",
   GainTokenArea2 = "t2",
   GainTokenArea3 = "t3",
@@ -80,6 +81,19 @@ export enum Condition {
   TerraformStep = "d"
 }
 
+export namespace Condition {
+  export function matchesBuilding(condition: Condition, building: Building, planet: Planet) : boolean {
+    if (condition as string === building as string) {
+      return true;
+    }
+    switch (condition) {
+      case Condition.MineOnGaia: return building === Building.Mine && planet === Planet.Gaia;
+      case Condition.PlanetaryInstituteOrAcademy: return building === Building.PlanetaryInstitute || building === Building.Academy1 || building === Building.Academy2;
+    }
+    return false;
+  }
+}
+
 export enum Building {
   Mine = "m",
   TradingStation = "ts",
@@ -87,7 +101,8 @@ export enum Building {
   PlanetaryInstitute = "PI",
   Academy1 = "ac1",
   Academy2 = "ac2",
-  GaiaFormer = "gf"
+  GaiaFormer = "gf",
+  SpaceStation = "sp"
 }
 
 export enum Faction {
@@ -121,7 +136,8 @@ export enum Command {
   DeclineLeech = "decline",
   BurnPower = "burn",
   PlaceLostPlanet  = "lostPlanet",
-  FreeAction = "freeact"
+  FreeAction = "freeact",
+  FormFederation = "federation"
 }
 
 export enum Player {

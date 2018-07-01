@@ -6,7 +6,9 @@ export interface GaiaHexData {
   sector: string,
   building?: Building,
   /** Who occupies the spot */
-  player?: Player
+  player?: Player,
+  /** List of players who have a federation occupying this square */
+  federations?: Player[]
 }
 
 export default class Sector {

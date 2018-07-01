@@ -1,8 +1,9 @@
 import Reward from "./reward";
-import { Resource } from "..";
+import { Resource, GaiaHexData } from "..";
 import { ResearchField, Building, Booster, TechTile, AdvTechTile, Federation } from "./enums";
 import { EventEmitter } from "eventemitter3";
-import { CubeCoordinates } from "hexagrid";
+import { CubeCoordinates, Hex } from "hexagrid";
+import federationTiles, { isGreen }from "./tiles/federations";
 
 const MAX_ORE = 15;
 const MAX_CREDIT = 30;
@@ -46,7 +47,7 @@ export default class PlayerData extends EventEmitter {
   federations: Federation[] = [];
   greenFederations: number = 0;
   // Coordinates occupied by buildings
-  occupied: CubeCoordinates[] = [];
+  occupied: Hex<GaiaHexData>[] = [];
 
   toJSON(): Object {
     const ret = {
@@ -112,10 +113,11 @@ export default class PlayerData extends EventEmitter {
       case Resource.Knowledge: this.knowledge = Math.min(MAX_KNOWLEDGE, this.knowledge + count); return;
       case Resource.VictoryPoint: this.victoryPoints += count; return;
       case Resource.Qic: this.qics += count; return;
+      case Resource.GainToken:  this.discartPower(count, Resource.GainToken); return;
       case Resource.GainTokenArea1: this.power.area1 += count; return;
       case Resource.GainTokenArea2: this.power.area2 += count; return;
       case Resource.GainTokenArea3: this.power.area3 += count; return;
-      case Resource.GainTokenGaiaArea:  this.movePowerToGaia(-count); return;
+      case Resource.GainTokenGaiaArea:  this.discartPower(count, Resource.GainTokenGaiaArea); return;
       case Resource.ChargePower: this.chargePower(count); return;
       case Resource.RangeExtension: this.range += count; return;
       case Resource.GaiaFormer: this.gaiaformers +=count; return;
@@ -143,13 +145,18 @@ export default class PlayerData extends EventEmitter {
       case Resource.VictoryPoint: return this.victoryPoints >= reward.count;
       case Resource.Qic: return this.qics >= reward.count;
       case Resource.None: return true;
+      case Resource.GainToken: return this.discardablePowerTokens() >= reward.count;
       case Resource.GainTokenArea1: return this.power.area1 >= reward.count;
       case Resource.GainTokenArea2: return this.power.area2 >= reward.count;
       case Resource.GainTokenArea3: return this.power.area3 >= reward.count;
-      case Resource.GainTokenGaiaArea: return this.power.area1 + this.power.area2 + this.power.area3 >= reward.count;
+      case Resource.GainTokenGaiaArea: return this.discardablePowerTokens() >= reward.count;
     }
 
     return false;
+  }
+
+  discardablePowerTokens(): number {
+    return this.power.area1 + this.power.area2 + this.power.area3;
   }
 
   /**
@@ -158,17 +165,13 @@ export default class PlayerData extends EventEmitter {
    * 
    * @param power Power charged
    */
-  chargePower(power: number, checkOnly : boolean = false) : number {
+  chargePower(power: number) : number {
     const area1ToUp = Math.min(power, this.power.area1);
-    power -= area1ToUp;
-    const area2ToUp = Math.min(power, this.power.area2 + area1ToUp );
+    const area2ToUp = Math.min(power - area1ToUp, this.power.area2 + area1ToUp );
 
-    if (!checkOnly) {
-      this.power.area1 -= area1ToUp;
-      this.power.area2 += area1ToUp;
-      this.power.area2 -= area2ToUp;
-      this.power.area3 += area2ToUp;
-    }
+    this.power.area1 -= area1ToUp;
+    this.power.area2 += area1ToUp - area2ToUp;
+    this.power.area3 += area2ToUp;
     
     //returns real charged power
     return area1ToUp + area2ToUp;
@@ -179,33 +182,19 @@ export default class PlayerData extends EventEmitter {
       this.power.area1 += power;
   }
 
-  movePowerToGaia(power: number) {
+  discartPower(power: number, type: Resource) {
     const area1ToGaia = Math.min(power, this.power.area1);
-    this.power.gaia += area1ToGaia;
+    const area2ToGaia = Math.min(power - area1ToGaia, this.power.area2);
+    const area3ToGaia = Math.min(power - area1ToGaia - area2ToGaia, this.power.area2);
+
     this.power.area1 -= area1ToGaia;
-    power -= area1ToGaia;
-
-    if (power <= 0) {
-      return;
-    }
-
-    const area2ToGaia = Math.min(power, this.power.area2);
-    this.power.gaia += area2ToGaia;
     this.power.area2 -= area2ToGaia;
-    power -= area2ToGaia
-
-    if (power <= 0) {
-      return;
-    }
-
-    const area3ToGaia = Math.min(power, this.power.area2);
-    this.power.gaia += area3ToGaia;
-    power -= area3ToGaia
     this.power.area3 -= area3ToGaia;
 
-   if (power <= 0) {
-      return;
+    if (type = Resource.GainTokenGaiaArea) {
+      this.power.gaia += area1ToGaia + area2ToGaia + area3ToGaia;
     }
+
   }
 
   advanceResearch(which: ResearchField, count: number) {
@@ -213,5 +202,13 @@ export default class PlayerData extends EventEmitter {
       this.research[which] += 1;
       this.emit("advance-research", which);
     }
+  }
+
+  gainFederationToken(federation: Federation) {
+    this.federations.push(federation);
+    if (isGreen(federation)) {
+      this.greenFederations += 1;
+    }
+    this.gainRewards(federationTiles[federation].map(str => new Reward(str)));
   }
 }
