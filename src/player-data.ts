@@ -3,6 +3,7 @@ import { Resource } from "..";
 import { ResearchField, Building, Booster, TechTile, AdvTechTile, Federation } from "./enums";
 import { EventEmitter } from "eventemitter3";
 import { CubeCoordinates } from "hexagrid";
+import federationTiles, { isGreen }from "./tiles/federations";
 
 const MAX_ORE = 15;
 const MAX_CREDIT = 30;
@@ -202,5 +203,13 @@ export default class PlayerData extends EventEmitter {
       this.research[which] += 1;
       this.emit("advance-research", which);
     }
+  }
+
+  gainFederationToken(federation: Federation) {
+    this.federations.push(federation);
+    if (isGreen(federation)) {
+      this.greenFederations += 1;
+    }
+    this.gainRewards(federationTiles[federation].map(str => new Reward(str)));
   }
 }
