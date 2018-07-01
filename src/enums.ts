@@ -28,7 +28,6 @@ export enum Resource {
   Knowledge = "k",
   Qic = "q",
   ChargePower = "pw",
-  BurnPower = "b",
   GainToken = "t",
   GainTokenGaiaArea = "tg",
   VictoryPoint = "vp",

@@ -60,7 +60,7 @@ export default class Player {
     return factions.planet(this.faction);
   }
 
-  canBuild(targetPlanet: Planet, building: Building, {isolated, addedCost}: {isolated?: boolean, addedCost?: Reward[]}) : Reward[] {
+  canBuild(targetPlanet: Planet, building: Building, {isolated, addedCost, existingBuilding}: {isolated?: boolean, addedCost?: Reward[], existingBuilding?: Building}) : Reward[] {
     if (this.data[building] >= (building === Building.GaiaFormer ? this.data.gaiaformers : this.board.maxBuildings(building))) {
       // Too many buildings of the same kind
       return undefined;
@@ -79,9 +79,13 @@ export default class Player {
       const gaiaformingDiscount =  this.data.gaiaformers > 1  ? this.data.gaiaformers : 0;
       addedCost.push(new Reward(-gaiaformingDiscount, Resource.GainTokenGaiaArea));
     } else if (building === Building.Mine){
-      //habiltability costs
-     if ( targetPlanet === Planet.Gaia) {
-        addedCost.push(new Reward("1q"));
+      //habitability costs
+      if (targetPlanet === Planet.Gaia) {
+        if (!existingBuilding) {
+          addedCost.push(new Reward("1q"));
+        } else {
+          // Already a gaia-former on the planet, so no need to pay a Q.I.C.
+        }
       } else { // Get the number of terraforming steps to pay discounting terraforming track
         const steps = terraformingStepsRequired(factions[this.faction].planet, targetPlanet); 
         addedCost.push(new Reward((TERRAFORMING_COST - this.data.terraformSteps)*steps, Resource.Ore));
@@ -168,7 +172,7 @@ export default class Player {
     this.receiveBuildingTriggerIncome(building, hex.data.planet);
   }
 
-  pass(){
+  pass() {
     this.receivePassIncome();
     // remove the old booster  
     this.removeEvents( Event.parse( boosts[this.data.roundBooster]));
@@ -190,7 +194,8 @@ export default class Player {
   receivePassIncome() {
     // this is for pass tile income (e.g. rounboosters, adv tiles)
     for (const event of this.events[Operator.Pass]) {
-      this.data.gainRewards(event.rewards);
+      const times = this.eventConditionCount(event.condition);
+      this.data.gainRewards(event.rewards.map(reward => new Reward(reward.count * times, reward.type)));
     }
   }
 
@@ -420,5 +425,20 @@ export default class Player {
     }
 
     return ret;
+  }
+  
+  eventConditionCount(condition: Condition) {
+    switch (condition) {
+      case Condition.None: return 1;
+      case Condition.Mine: return this.data[Building.Mine];
+      case Condition.TradingStation: return this.data[Building.TradingStation];
+      case Condition.ResearchLab: return this.data[Building.ResearchLab];
+      case Condition.PlanetaryInstituteOrAcademy: return this.data[Building.Academy1] + this.data[Building.Academy2] + this.data[Building.PlanetaryInstitute];
+      case Condition.Federation: return this.data.federations.length;
+      // TODO when federations branch is merged, use hexes of data.occupied to determine
+      case Condition.Gaia: case Condition.PlanetType: case Condition.Sector: return 0;
+    }
+
+    return 0;
   }
 }

@@ -258,10 +258,15 @@ describe("Engine", () => {
       p1 pass booster2
       p2 build ts 4x-2
       p1 leech 1
-      p1 build m 3x1
     `);
  
-    expect(() => new Engine(moves)).to.not.throw();
+    const engine = new Engine(moves);
+
+    const qicCount = engine.player(Player.Player1).data.qics;
+
+    engine.move("p1 build m 3x1");
+
+    expect(engine.player(Player.Player1).data.qics).to.equal(qicCount, "Building a mine from a gaia former doest NOT need a qic");
   });
 
   it ("should allow to upgrade research area after building a RL, pick tech in terra", () => {
@@ -280,14 +285,14 @@ describe("Engine", () => {
       p2 build ts 4x-2
       p1 decline
       p1 build lab 4x0
-      p1 tech tech6
+      p1 tech terra
       p1 up terra
     `);
  
     expect(() => new Engine(moves)).to.not.throw();
   });
 
-  it ("should trown when upgrading research area after building a RL, pick tech in nav", () => {
+  it ("should work when upgrading research area after building a RL, pick tech in nav", () => {
     const moves = parseMoves(`
       init 2 randomSeed
       p1 faction terrans
@@ -303,13 +308,35 @@ describe("Engine", () => {
       p2 build ts 4x-2
       p1 decline
       p1 build lab 4x0
-      p1 tech tech6
+      p1 tech nav
       p1 up nav
     `);
  
     expect(() => new Engine(moves)).to.not.throw();
   });
   
+  it ("should throw when picking tech in nav & upgrading gaia", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction nevlas
+      p1 build m 4x0
+      p2 build m 4x-2
+      p2 build m 2x-2
+      p1 build m 2x2
+      p2 booster booster2
+      p1 booster booster3
+      p1 build ts 4x0
+      p2 leech 1
+      p2 build ts 4x-2
+      p1 decline
+      p1 build lab 4x0
+      p1 tech nav
+      p1 up gaia
+    `);
+ 
+    expect(() => new Engine(moves)).to.throw();
+  });
 
   it("should throw when two players choose factions on the same planet", () => {
     const moves = ["init 3 seed?2", "p1 faction terrans", "p2 faction lantids"];
@@ -387,6 +414,31 @@ describe("Engine", () => {
       `);
   
       expect(() => new Engine(moves)).to.throw(AssertionError);
+    });
+
+    it("should gain 2 victory points when upgrading to ts and having booster7", () => {
+      //booster7: ["o", "ts | 2vp"]
+      const moves = parseMoves(`
+        init 2 randomSeed
+        p1 faction terrans
+        p2 faction ambas
+        p1 build m 2x2
+        p2 build m -6x2
+        p2 build m 3x-4
+        p1 build m 4x-6
+        p2 booster booster2
+        p1 booster booster7
+      `);
+
+      const engine = new Engine(moves);
+      const vp = engine.player(Player.Player1).data.victoryPoints;
+      
+      engine.move("p1 build ts 4x-6");
+      engine.move("p2 decline");
+      engine.move("p2 pass booster3");
+      engine.move("p1 pass booster2");
+
+      expect(engine.player(Player.Player1).data.victoryPoints).to.equal(vp+2);
     });
   });
 });
