@@ -522,16 +522,10 @@ export default class Engine {
         const hex = this.map.grid.get(q, r);
 
         this.player(player).build(
-          elem.upgradedBuilding,
           building,
-          hex.data.planet,
-          Reward.parse(elem.cost),
-          {q, r, s}
+          hex,
+          Reward.parse(elem.cost)
         );
-
-        hex.data.building = building;
-        hex.data.player = player;
-
 
         this.leechingPhase(player, {q, r, s} );
 
@@ -633,12 +627,8 @@ export default class Engine {
     const { q, r, s } = CubeCoordinates.parse(location);
     const hex = this.map.grid.get(q, r);
     hex.data.planet = Planet.Lost;
-    hex.data.building = Building.Mine;
-    hex.data.player = player;
 
-    this.players[player].data.occupied = _.uniqWith([].concat(this.players[player].data.occupied, location), _.isEqual)
-
-    this.players[player].receiveBuildingTriggerIncome(Building.Mine, Planet.Lost)
+    this.player(player).build(Building.Mine, hex, []);
     this.leechingPhase(player, { q, r, s });
 
     return;

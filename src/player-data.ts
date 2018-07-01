@@ -1,8 +1,8 @@
 import Reward from "./reward";
-import { Resource } from "..";
+import { Resource, GaiaHexData } from "..";
 import { ResearchField, Building, Booster, TechTile, AdvTechTile, Federation } from "./enums";
 import { EventEmitter } from "eventemitter3";
-import { CubeCoordinates } from "hexagrid";
+import { CubeCoordinates, Hex } from "hexagrid";
 import federationTiles, { isGreen }from "./tiles/federations";
 
 const MAX_ORE = 15;
@@ -47,7 +47,7 @@ export default class PlayerData extends EventEmitter {
   federations: Federation[] = [];
   greenFederations: number = 0;
   // Coordinates occupied by buildings
-  occupied: CubeCoordinates[] = [];
+  occupied: Hex<GaiaHexData>[] = [];
 
   toJSON(): Object {
     const ret = {

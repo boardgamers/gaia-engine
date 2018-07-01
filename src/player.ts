@@ -136,7 +136,7 @@ export default class Player {
     this.receiveAdvanceResearchTriggerIncome();
   }
 
-  build(upgradedBuilding, building: Building, planet: Planet, cost: Reward[], location: CubeCoordinates) {
+  build(building: Building, hex: Hex<GaiaHexData>, cost: Reward[]) {
     this.data.payCosts(cost);
     //excluding Gaiaformers as occupied 
     if ( building !== Building.GaiaFormer ) {
@@ -148,13 +148,24 @@ export default class Player {
     this.data[building] += 1;
 
     // remove upgraded building and the associated event
-    if(upgradedBuilding) {
+    const upgradedBuilding = hex.data.building;
+    if (upgradedBuilding) {
       this.data[upgradedBuilding] -= 1;
       this.removeEvent(this.board[upgradedBuilding].income[this.data[upgradedBuilding]]);
     }
 
+    //Add to nearby federation
+    for (const occupied of this.data.occupied) {
+      if (CubeCoordinates.distance(occupied, hex) === 1 && occupied.data.federations && occupied.data.federations.includes(this.player)) {
+        hex.data.federations = (hex.data.federations||[]).concat([this.player]);
+      }
+    }
+
+    hex.data.building = building;
+    hex.data.player = this.player;
+
     // get triggered income for new building
-    this.receiveBuildingTriggerIncome(building, planet);
+    this.receiveBuildingTriggerIncome(building, hex.data.planet);
   }
 
   pass(){

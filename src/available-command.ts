@@ -212,7 +212,6 @@ export function generate(engine: Engine): AvailableCommand[] {
               var buildCost = engine.player(player).canBuild(hex.data.planet, upgrade, {isolated});
               if ( buildCost !== undefined) {
                 buildings.push({
-                  upgradedBuilding: hex.data.building,
                   building: upgrade,
                   cost: buildCost.map(c => c.toString()).join(','),
                   coordinates: hex.toString()
