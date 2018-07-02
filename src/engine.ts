@@ -426,7 +426,7 @@ export default class Engine {
     } else {
       if (playRounds && command !== Command.Pass) {
         // if freeAction current player stays current player
-        const next = command !== Command.FreeAction ? (this.currentPlayerTurnOrderPos + 1) % this.turnOrder.length : this.currentPlayerTurnOrderPos;
+        const next = command !== Command.FreeAction || Command.BurnPower ? (this.currentPlayerTurnOrderPos + 1) % this.turnOrder.length : this.currentPlayerTurnOrderPos;
         this.currentPlayerTurnOrderPos = next;
         this.currentPlayer = this.turnOrder[next];
         return;
