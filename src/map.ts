@@ -2,8 +2,9 @@ import {Grid, Hex, CubeCoordinates} from "hexagrid";
 import * as seedrandom from "seedrandom";
 import * as shuffleSeed from "shuffle-seed";
 import * as _ from "lodash";
-import Sector, { GaiaHexData } from "./sector";
+import Sector from "./sector";
 import { Player, Planet } from "./enums";
+import { GaiaHexData, GaiaHex } from "./gaia-hex";
 
 // Data: from outer ring to inside ring, starting from a corner
 const s1 = {name: "s1", map: "eeeeemevoeed,sereee,e".replace(/,/g, "")};
@@ -51,7 +52,7 @@ for (let i = -1; i <= 1; i++) {
 export default class SpaceMap {
   rng: seedrandom.prng;
   nbPlayers: number;
-  grid: Grid<GaiaHexData>; // hexagrid
+  grid: Grid<GaiaHex>; // hexagrid
   distanceCache: {[coord: string]: {[coord: string]: number}} = {};
 
   constructor(nbPlayers ?: number, seed ?: string) {

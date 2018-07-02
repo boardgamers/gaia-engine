@@ -315,7 +315,7 @@ describe("Engine", () => {
     expect(() => new Engine(moves)).to.not.throw();
   });
   
-  it ("should throw when picking tech in nav & upgrading gaia", () => {
+  it("should throw when picking tech in nav & upgrading gaia", () => {
     const moves = parseMoves(`
       init 2 randomSeed
       p1 faction terrans

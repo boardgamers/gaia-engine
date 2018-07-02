@@ -5,14 +5,15 @@ import { factionBoard, FactionBoard } from './faction-boards';
 import * as _ from 'lodash';
 import factions from './factions';
 import Reward from './reward';
-import { CubeCoordinates, Hex } from 'hexagrid';
+import { CubeCoordinates, Hex, Grid } from 'hexagrid';
 import researchTracks from './research-tracks';
 import { terraformingStepsRequired } from './planets';
 import boosts from './tiles/boosters';
 import { Player as PlayerEnum } from './enums';
 import { stdBuildingValue } from './buildings';
 import SpaceMap from './map';
-import { GaiaHexData } from '..';
+import { GaiaHexData, GaiaHex } from './gaia-hex';
+import spanningTree from './algorithms/spanning-tree';
 
 const TERRAFORMING_COST = 3;
 const FEDERATION_COST = 7;
@@ -140,7 +141,7 @@ export default class Player {
     this.receiveAdvanceResearchTriggerIncome();
   }
 
-  build(building: Building, hex: Hex<GaiaHexData>, cost: Reward[]) {
+  build(building: Building, hex: GaiaHex, cost: Reward[]) {
     this.data.payCosts(cost);
     //excluding Gaiaformers as occupied 
     if ( building !== Building.GaiaFormer ) {
@@ -244,11 +245,28 @@ export default class Player {
     // considers real chargeable power and victory points
     return Math.min(possibleLeech, this.data.power.area1 * 2 + this.data.power.area2, this.data.victoryPoints + 1);
   }
+  
+  eventConditionCount(condition: Condition) {
+    switch (condition) {
+      case Condition.None: return 1;
+      case Condition.Mine: return this.data[Building.Mine];
+      case Condition.TradingStation: return this.data[Building.TradingStation];
+      case Condition.ResearchLab: return this.data[Building.ResearchLab];
+      case Condition.PlanetaryInstituteOrAcademy: return this.data[Building.Academy1] + this.data[Building.Academy2] + this.data[Building.PlanetaryInstitute];
+      case Condition.Federation: return this.data.federations.length;
+      case Condition.Gaia: return this.data.occupied.filter(hex => hex.data.planet === Planet.Gaia && hex.colonizedBy(this.player)).length;
+      case Condition.PlanetType: return _.uniq(this.data.occupied.filter(hex => hex.data.planet !== Planet.Empty && hex.colonizedBy(this.player)).map(hex => hex.data.planet)).length;
+      case Condition.Sector: return _.uniq(this.data.occupied.filter(hex => hex.colonizedBy(this.player)).map(hex => hex.data.sector)).length;
+    }
 
-  availableFederations(map: SpaceMap): Hex<GaiaHexData>[][] {
+    return 0;
+  }
+  
+  availableFederations(map: SpaceMap): GaiaHex[][] {
     const excluded = map.excludedHexesForBuildingFederation(this.player);
 
     const hexes = this.data.occupied.map(coord => map.grid.get(coord.q, coord.r)).filter(hex => !excluded.has(hex));
+    const hexesWithBuildings = new Set(hexes);
     const values = hexes.map(node => this.buildingValue(node.data.building, node.data.planet));
 
     const combinations = this.possibleCombinationsForFederations(_.zipWith(hexes, values, (val1, val2) => ({hex: val1, value: val2})));
@@ -256,157 +274,26 @@ export default class Player {
     
     // We now have several combinations of buildings that can form federations
     // We need to see if they can be connected
-    let federations: Array<{occupied: Set<Hex<GaiaHexData>>, satellites: number, planets: number}> = [];
+    const federations: GaiaHex[][] = [];
 
+    const allHexes = [...map.grid.values()].filter(hex => !excluded.has(hex));
+    const workingGrid = new Grid(...allHexes.map(hex => new Hex(hex.q, hex.r)));
     for (const combination of combinations) {
-      federations.push(...getFederations(combination));
-    }
-
-    /** Federation with the least satellites */
-    const minFed1 = _.minBy(federations, fed => fed.planets + fed.satellites * 1000);
-    /** Federation with the least planets */
-    const minFed2 = _.minBy(federations, fed => fed.planets * 1000 + fed.satellites);
-
-    /** Remove federations which have at least one planet & one satellite more than another */
-    federations = federations.filter(fed => {
-      if (fed.planets > minFed1.planets && fed.satellites > minFed1.satellites) {
-        return false;
-      }
-      if (fed.planets > minFed2.planets && fed.satellites > minFed2.satellites) {
-        return false;
-      }
-      return true;
-    });
-
-    /** Remove federations which are included in another (i.e. have an extra satellite but same number of planets) */
-    const toRemove = [];
-    for (let i = 0; i < federations.length; i++) {
-      for (let j = 1; j < federations.length; j++) {
-        const [fed1, fed2] = _.sortBy([federations[i], federations[j]], fed => fed.occupied.size);
-        const included = [...fed1.occupied.values()].every(val => fed2.occupied.has(val));
-
-        if (included) {
-          toRemove.push(fed1);
-        }
+      const tree = spanningTree(combination, workingGrid);
+      if (tree) {
+        // Convert from regular hex to gaia hex of grid
+        federations.push(tree.map(hex => map.grid.get(hex.q, hex.r)));
       }
     }
-    federations = federations.filter(fed => !toRemove.includes(fed));
 
-    var getFederations = (buildings: Hex<GaiaHexData>[]) => {
-      let solutions: HexGroup[] = [];
-      const hexesWithBuildings = new Set(hexes);
+    // TODO: remove federations with one more planet & one more satellite
+    // TODO: remove federations included in another
 
-      const [firstBuilding, ...otherBuildings] = buildings;
-
-      class HexGroup {
-        constructor(other?: HexGroup) {
-          if (other) {
-            this.toReach = new Set(other.toReach);
-            this.satellites = other.satellites;
-            this.occupied = new Set(other.occupied);
-            this.planets = other.planets;
-          }
-        }
-
-        toString() {
-          return [...this.occupied].map(x => x.toString()).join(",");
-        }
-
-        add(hex: Hex<GaiaHexData>) {
-          if (this.occupied.has(hex)) {
-            return;
-          }
-
-          this.occupied.add(hex);
-          this.toReach.delete(hex);
-
-          if (hex.data.planet !== Planet.Empty) {
-            this.planets += 1;
-          }
-
-          for (const hexWithBuilding of hexesWithBuildings) {
-            if (CubeCoordinates.distance(hex, hexWithBuilding) === 1) {
-              this.add(hexWithBuilding);
-            }
-          }
-        }
-
-        toReach: Set<Hex<GaiaHexData>> = new Set();
-        occupied: Set<Hex<GaiaHexData>> = new Set();
-        satellites: number = 0;
-        // Strict interpretation of the rules says planets  might be buildings instead (including space stations)
-        planets: number = 0;
-      }
-      
-      const startingHexGroup = new HexGroup();
-
-      for (const building of otherBuildings) {
-        startingHexGroup.toReach.add(building);
-      }
-      startingHexGroup.add(firstBuilding);
-
-      // If the starting buildings are already connected
-      if (startingHexGroup.toReach.size === 0) {
-        return [startingHexGroup];
-      }
-
-      type HexGroupMap = Map<string, HexGroup>;
-      let minSatellites = maxSatellites;
-      const hexGroups: HexGroupMap = new Map([[startingHexGroup.toString(), startingHexGroup]]);
-
-      let toExplore: HexGroupMap = new Map(hexGroups.entries());
-      let nextToExplore: HexGroupMap = new Map();
-
-      while (toExplore.size > 0) {
-        for (const [_, hexGroup] of toExplore) {
-          if (hexGroup.satellites >= minSatellites) {
-            // We are going to add one satellite anyway, which will 
-            // put us over the limit
-            continue;
-          }
-          const exploredNeighbours: Set<Hex<GaiaHexData>> = new Set();
-          for (const hex of hexGroup.occupied) {
-            for (const neighbour of map.grid.neighbours(hex.q, hex.r)) {
-              if (excluded.has(neighbour) || exploredNeighbours.has(neighbour)) {
-                continue;
-              }
-              exploredNeighbours.add(neighbour);
-              const newHexGroup = new HexGroup(hexGroup); 
-              newHexGroup.add(neighbour);
-              newHexGroup.satellites += 1;
-
-              const key = newHexGroup.toString();
-              if (hexGroups.has(key)) {
-                continue;
-              }
-              hexGroups.set(key, newHexGroup);
-
-              if (newHexGroup.toReach.size === 0) {
-                if (minSatellites === hexGroup.satellites) {
-                  solutions.push(newHexGroup);
-                } else if (minSatellites < hexGroup.satellites) {
-                  minSatellites = hexGroup.satellites;
-                  solutions = [newHexGroup];
-                }
-              } else {
-                nextToExplore.set(key, newHexGroup);
-              }
-            }
-          }
-        }
-
-        toExplore = nextToExplore;
-        nextToExplore = new Map();
-      }
-
-      return solutions;
-    }
-
-    return federations.map(fed => [...fed.occupied.values()]);
+    return federations;
   }
 
-  possibleCombinationsForFederations(nodes: Array<{hex: Hex<GaiaHexData>, value: number}>, toReach = FEDERATION_COST): Hex<GaiaHexData>[][] {
-    const ret: Hex<GaiaHexData>[][] = [];
+  possibleCombinationsForFederations(nodes: Array<{hex: GaiaHex, value: number}>, toReach = FEDERATION_COST): GaiaHex[][] {
+    const ret: GaiaHex[][] = [];
 
     for (let i = 0; i < nodes.length; i ++) {
       if (nodes[i].value === 0) {
@@ -425,20 +312,5 @@ export default class Player {
     }
 
     return ret;
-  }
-  
-  eventConditionCount(condition: Condition) {
-    switch (condition) {
-      case Condition.None: return 1;
-      case Condition.Mine: return this.data[Building.Mine];
-      case Condition.TradingStation: return this.data[Building.TradingStation];
-      case Condition.ResearchLab: return this.data[Building.ResearchLab];
-      case Condition.PlanetaryInstituteOrAcademy: return this.data[Building.Academy1] + this.data[Building.Academy2] + this.data[Building.PlanetaryInstitute];
-      case Condition.Federation: return this.data.federations.length;
-      // TODO when federations branch is merged, use hexes of data.occupied to determine
-      case Condition.Gaia: case Condition.PlanetType: case Condition.Sector: return 0;
-    }
-
-    return 0;
   }
 }
