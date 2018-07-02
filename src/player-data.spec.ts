@@ -16,7 +16,7 @@ describe("PlayerData", () => {
       data.power.area1 = 4;
       data.power.area2 = 4;
 
-      data.discartPower(6, Resource.GainTokenGaiaArea);
+      data.discardPower(6, Resource.GainTokenGaiaArea);
 
       expect(data.power.area1).to.equal(0);
       expect(data.power.area2).to.equal(2);

@@ -128,7 +128,7 @@ export default class SpaceMap {
   }
 
   excludedHexesForBuildingFederation(player: Player) {
-    const ret: Set<Hex<GaiaHexData>> = new Set();
+    const ret: Set<GaiaHex> = new Set();
 
     for (const hex of this.grid.values()) {
       // A planet not occupied by the player can't be used to build a federation

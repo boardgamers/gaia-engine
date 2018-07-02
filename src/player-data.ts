@@ -113,8 +113,8 @@ export default class PlayerData extends EventEmitter {
       case Resource.Knowledge: this.knowledge = Math.min(MAX_KNOWLEDGE, this.knowledge + count); return;
       case Resource.VictoryPoint: this.victoryPoints += count; return;
       case Resource.Qic: this.qics += count; return;
-      case Resource.GainToken: count>0 ?  this.power.area1 += count : this.discartPower(count, Resource.GainToken); return;
-      case Resource.GainTokenGaiaArea:  this.discartPower(count, Resource.GainTokenGaiaArea); return;
+      case Resource.GainToken: count>0 ?  this.power.area1 += count : this.discardPower(count, Resource.GainToken); return;
+      case Resource.GainTokenGaiaArea:  this.discardPower(count, Resource.GainTokenGaiaArea); return;
       case Resource.ChargePower: count>0 ? this.chargePower(count) : this.spendPower(count); return;
       case Resource.RangeExtension: this.range += count; return;
       case Resource.GaiaFormer: this.gaiaformers +=count; return;
@@ -177,7 +177,7 @@ export default class PlayerData extends EventEmitter {
       this.power.area1 += power;
   }
 
-  discartPower(power: number, type: Resource) {
+  discardPower(power: number, type: Resource) {
     const area1ToGaia = Math.min(power, this.power.area1);
     const area2ToGaia = Math.min(power - area1ToGaia, this.power.area2);
     const area3ToGaia = Math.min(power - area1ToGaia - area2ToGaia, this.power.area2);

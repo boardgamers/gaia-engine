@@ -1,16 +1,7 @@
-import {Hex, Grid} from "hexagrid";
-import { Planet, Building, Player } from "./enums";
+import { Grid} from "hexagrid";
+import { Planet } from "./enums";
 
-export interface GaiaHexData {
-  planet: Planet,
-  sector: string,
-  building?: Building,
-  /** Who occupies the spot */
-  player?: Player,
-  /** List of players who have a federation occupying this square */
-  federations?: Player[]
-}
-import { GaiaHexData, GaiaHex } from "./gaia-hex";
+import {  GaiaHex } from "./gaia-hex";
 
 export default class Sector {
   /**
