@@ -144,7 +144,7 @@ export default class PlayerData extends EventEmitter {
       case Resource.None: return true;
       case Resource.GainToken: return this.discardablePowerTokens() >= reward.count;
       case Resource.GainTokenGaiaArea: return this.discardablePowerTokens() >= reward.count;
-      case Resource.ChargePower: return true;
+      case Resource.ChargePower: return this.power.area3 >= reward.count;
     }
 
     return false;
