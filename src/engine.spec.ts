@@ -242,7 +242,7 @@ describe("Engine", () => {
     expect(engine.players[Player.Player1].data.qics).to.equal(3);
   });
 
-  it ("should allow to place a gaia former and next round checks for transformation to gaia planet, pass is checking booster availablity", () => {
+  it("should allow to place a gaia former and next round checks for transformation to gaia planet, pass is checking booster availablity", () => {
     const moves = parseMoves(`
       init 2 randomSeed
       p1 faction terrans

@@ -83,7 +83,7 @@ export default class Player {
       //habitability costs
       if (targetPlanet === Planet.Gaia) {
         if (!existingBuilding) {
-          addedCost.push(new Reward("1q"));
+          addedCost.push(new Reward(1,Resource.Qic));
         } else {
           // Already a gaia-former on the planet, so no need to pay a Q.I.C.
         }
