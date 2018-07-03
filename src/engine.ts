@@ -19,10 +19,12 @@ import {
   AdvTechTilePos,
   Federation,
   BoardAction
+
 } from './enums';
 import { CubeCoordinates } from 'hexagrid';
 import Event from './events';
 import techs from './tiles/techs';
+import federations from './tiles/federations';
 import * as researchTracks from './research-tracks'
 import AvailableCommand, {
   generate as generateAvailableCommands
@@ -357,6 +359,18 @@ export default class Engine {
     });
   }
 
+  selectFederationTilePhase(player: PlayerEnum, fromCommand: Command){
+    const possibleTiles = Object.keys(this.federations).filter(key => this.federations[key] > 0);
+    const playerTiles = Object.keys(this.player(player).data.federations);
+
+    this.roundSubCommands.unshift({
+      name: Command.ChooseFederationTile,
+      player: player,
+      data: fromCommand === Command.Action ? playerTiles : possibleTiles
+    });
+
+  }
+
   possibleResearchAreas(player: PlayerEnum, cost: string, destResearchArea?: ResearchField) {
     const tracks = [];
     const data = this.players[player].data;
@@ -630,6 +644,20 @@ export default class Engine {
     this.player(player).removeEvents(Event.parse(techs[tile]));
   }
 
+  [Command.ChooseFederationTile](player: PlayerEnum, federation: Federation, fromCommand: Command = Command.ChooseFederationTile) {
+    const { tiles } = this.availableCommand(player, fromCommand).data;
+    const tileAvailable = tiles.find(ta => ta.tile == federation);
+
+    assert(tileAvailable !== undefined, `Federation ${federation} is not available`);
+
+    if (fromCommand === Command.Action) {
+      //rescore a federation
+      this.player(player).data.gainRewards(Reward.parse(federations[federation]));
+    } else {
+
+    }
+  }
+
   [Command.PlaceLostPlanet](player: PlayerEnum, location: string) {
     const avail = this.availableCommand(player, Command.Build);
     const { spaces } = avail.data;
@@ -675,10 +703,16 @@ export default class Engine {
 
     assert(acts.includes(action), `${action} is not in the available power actions`);
   
+    const pl = this.player(player);
     this.boardActions[action] = false;
   
-    this.players[player].data.payCost( new Reward(boardActions[action].cost));
-    this.players[player].data.gainReward( new Reward(boardActions[action].income));
+    pl.data.payCost( new Reward(boardActions[action].cost));
+    //rescore 
+    if (action === BoardAction.BoardAction9) {
+      this.selectFederationTilePhase(player, Command.Action);
+    } else {   
+      pl.data.gainReward( new Reward(boardActions[action].income));
+    };
   }
 
   [Command.FormFederation](player: PlayerEnum, hexes: string, federation: Federation) {

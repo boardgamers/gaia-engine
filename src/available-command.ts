@@ -118,6 +118,17 @@ export function generate(engine: Engine): AvailableCommand[] {
             break;
           }
 
+          case Command.ChooseFederationTile: {
+            commands.push(
+              {
+                name: Command.ChooseFederationTile,
+                player,
+                data: subCommand.data
+              }
+            );
+            break;
+          }
+
           case Command.UpgradeResearch: {
             const tracks = engine.possibleResearchAreas(player, "", subCommand.data)
 
