@@ -194,9 +194,14 @@ export default class Engine {
     switch (this.round) {
       case Round.SetupBuilding: {
         // Setup round - add Ivits to the end, before third Xenos
+
+        const posIvits = this.players.findIndex(
+          pl => pl.faction === Faction.Ivits
+        );
+
         const setupTurnOrder = this.players
-          .filter(pl => pl.faction !== Faction.Ivits)
-          .map((pl, i) => i as PlayerEnum);
+          .map((pl, i) => i as PlayerEnum)
+          .filter(i => i !==  posIvits);
         const reverseSetupTurnOrder = setupTurnOrder.slice().reverse();
         this.turnOrder = setupTurnOrder.concat(reverseSetupTurnOrder);
 
@@ -207,9 +212,6 @@ export default class Engine {
           this.turnOrder.push(posXenos as PlayerEnum);
         }
 
-        const posIvits = this.players.findIndex(
-          pl => pl.faction === Faction.Ivits
-        );
         if (posIvits !== -1) {
           this.turnOrder.push(posIvits as PlayerEnum);
         }
@@ -547,8 +549,9 @@ export default class Engine {
       if (elem.building === building && elem.coordinates === location) {
         const {q, r, s} = CubeCoordinates.parse(location);
         const hex = this.map.grid.get(q, r);
+        const pl = this.player(player);
 
-        this.player(player).build(
+        pl.build(
           building,
           hex,
           Reward.parse(elem.cost),
@@ -557,7 +560,11 @@ export default class Engine {
 
         this.leechingPhase(player, {q, r, s} );
 
-        if ( building === Building.ResearchLab || buildings === Building.Academy1 || building === Building.Academy2) {
+        if ( pl.faction === Faction.Gleens && building === Building.PlanetaryInstitute){
+          pl.data.gainFederationToken(Federation.FederationGleens);
+        }
+
+        if ( building === Building.ResearchLab || building === Building.Academy1 || building === Building.Academy2) {
           this.techTilePhase(player);
         }
        
