@@ -17,7 +17,8 @@ import {
   TechTilePos,
   AdvTechTile,
   AdvTechTilePos,
-  Federation
+  Federation,
+  BoardAction
 } from './enums';
 import { CubeCoordinates } from 'hexagrid';
 import Event from './events';
@@ -43,6 +44,9 @@ export default class Engine {
   } = {};
   advTechTiles: {
     [key in AdvTechTilePos]?: {tile: AdvTechTile; numTiles: number}
+  } = {};
+  boardActions: {
+    [key in BoardAction]?: {action: BoardAction; available: boolean}
   } = {};
   federations: {
     [key in Federation]?: number

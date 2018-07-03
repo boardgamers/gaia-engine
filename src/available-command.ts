@@ -5,7 +5,7 @@ import factions from './factions';
 import * as assert from "assert";
 import { upgradedBuildings } from './buildings';
 import Reward from './reward';
-import freeActions from './actions';
+import {freeActions} from './actions';
 
 const ISOLATED_DISTANCE = 3;
 const UPGRADE_RESEARCH_COST = "4k";

@@ -232,3 +232,16 @@ export enum Federation {
   Federation6= "fed6",
   FederationGleens= "gleens"
 }
+
+export enum BoardAction {
+  BoardAction1= "poweraction1",
+  BoardAction2= "poweraction2",
+  BoardAction3= "poweraction3",
+  BoardAction4= "poweraction4",
+  BoardAction5= "poweraction5",
+  BoardAction6= "poweraction6",
+  BoardAction7= "poweraction7",
+  BoardAction8= "qicaction1",
+  BoardAction9= "qicaction2",
+  BoardAction10= "qicaction3",  
+}
