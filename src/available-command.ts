@@ -5,7 +5,7 @@ import factions from './factions';
 import * as assert from "assert";
 import { upgradedBuildings } from './buildings';
 import Reward from './reward';
-import {freeActions} from './actions';
+import {freeActions, boardActions} from './actions';
 
 const ISOLATED_DISTANCE = 3;
 const UPGRADE_RESEARCH_COST = "4k";
@@ -309,6 +309,18 @@ export function generate(engine: Engine): AvailableCommand[] {
         });
       }
 
+      // power actions 
+
+      const poweracts = engine.possibleBoardActions(player);
+   
+      if (poweracts.length > 0) {
+        commands.push({
+          name: Command.Action,
+          player,
+          data: { poweracts }
+        });
+      }
+       
       return commands;
     }
   }

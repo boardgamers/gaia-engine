@@ -15,7 +15,7 @@ const freeActions =  [
 //TODO rescore on act9
 const boardActions =  {
   [BoardAction.BoardAction1]: { cost: "7pw", income: "3k" },
-  [BoardAction.BoardAction2]: { cost: "5pw", income: "2d"},
+  [BoardAction.BoardAction2]: { cost: "5pw", income: "2d" },
   [BoardAction.BoardAction3]: { cost: "4pw", income: "2o" },
   [BoardAction.BoardAction4]: { cost: "4pw", income: "7c" },
   [BoardAction.BoardAction5]: { cost: "4pw", income: "2k" },
@@ -28,4 +28,4 @@ const boardActions =  {
 
 
 
-export { freeActions };
+export { freeActions, boardActions };

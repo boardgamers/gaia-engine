@@ -28,6 +28,7 @@ import AvailableCommand, {
   generate as generateAvailableCommands
 } from './available-command';
 import Reward from './reward';
+import { boardActions } from './actions';
 
 
 const ISOLATED_DISTANCE = 3;
@@ -46,8 +47,7 @@ export default class Engine {
     [key in AdvTechTilePos]?: {tile: AdvTechTile; numTiles: number}
   } = {};
   boardActions: {
-    [key in BoardAction]?: {action: BoardAction; available: boolean}
-  } = {};
+    [key in BoardAction]?: boolean  } = {};
   federations: {
     [key in Federation]?: number
   } = {};
@@ -422,6 +422,11 @@ export default class Engine {
     return spaces;
   }
 
+  possibleBoardActions(player: PlayerEnum) {
+    return  Object.values(BoardAction).filter(pwract => this.boardActions[pwract] && this.player(player).data.canPay(Reward.parse(boardActions[pwract].cost)));
+
+  }
+
   /** Next player to make a move, after current player makes their move */
   moveToNextPlayer(command: Command): PlayerEnum {
     const subPhaseTurn = this.roundSubCommands.length > 0;
@@ -479,13 +484,18 @@ export default class Engine {
       this.advTechTiles[pos] = {tile: advtechtiles[i], numTiles: 1};
     });
 
+    //powerActions
+    Object.values(BoardAction).forEach( pos => {
+      this.boardActions[pos] = true;
+    });
+
     this.terraformingFederation = shuffleSeed.shuffle(Object.values(Federation), this.map.rng())[0];
     for (const federation of Object.values(Federation) as Federation[]) {
       if (federation !== Federation.FederationGleens) {
         this.federations[federation] = federation === this.terraformingFederation ? 2: 3;
       }
     }
-    
+  
     this.players = [];
     
     for (let i = 0; i < nbPlayers; i++) {
@@ -658,6 +668,17 @@ export default class Engine {
     assert(burn == cost, `Impossible to burn ${cost} power`);
 
     this.players[player].data.burnPower(Number(cost));
+  }
+
+  [Command.Action](player: PlayerEnum, action: BoardAction) {
+    const { poweracts: acts} = this.availableCommand(player, Command.Action).data;
+
+    assert(acts.includes(action), `${action} is not in the available power actions`);
+  
+    this.boardActions[action] = false;
+  
+    this.players[player].data.payCost( new Reward(boardActions[action].cost));
+    this.players[player].data.gainReward( new Reward(boardActions[action].income));
   }
 
   [Command.FormFederation](player: PlayerEnum, hexes: string, federation: Federation) {
