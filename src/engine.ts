@@ -377,7 +377,7 @@ export default class Engine {
     const tracks = [];
     const data = this.players[player].data;
 
-    if (data.canPay(Reward.parse(cost))) {
+    if (this.players[player].canPay(Reward.parse(cost))) {
       for (const field of Object.values(ResearchField)) {
 
         // up in a specific research area
@@ -439,7 +439,7 @@ export default class Engine {
   }
 
   possibleBoardActions(player: PlayerEnum) {
-    return  Object.values(BoardAction).filter(pwract => this.boardActions[pwract] && this.player(player).data.canPay(Reward.parse(boardActions[pwract].cost)));
+    return  Object.values(BoardAction).filter(pwract => this.boardActions[pwract] && this.player(player).canPay(Reward.parse(boardActions[pwract].cost)));
 
   }
 
@@ -561,7 +561,7 @@ export default class Engine {
         this.leechingPhase(player, {q, r, s} );
 
         if ( pl.faction === Faction.Gleens && building === Building.PlanetaryInstitute){
-          pl.data.gainFederationToken(Federation.FederationGleens);
+          pl.gainFederationToken(Federation.FederationGleens);
         }
 
         if ( building === Building.ResearchLab || building === Building.Academy1 || building === Building.Academy2) {
@@ -581,16 +581,16 @@ export default class Engine {
 
     assert(track, `Impossible to upgrade knowledge for ${field}`);
 
-    const data = this.player(player).data;
+    const pl = this.player(player);
+   
+    pl.payCosts(Reward.parse(track.cost));
+    pl.gainRewards([new Reward(`${Command.UpgradeResearch}-${field}`)]);
 
-    data.payCosts(Reward.parse(track.cost));
-    data.gainReward(new Reward(`${Command.UpgradeResearch}-${field}`));
-
-    if (data.research[field] === researchTracks.lastTile(field)) {
+    if (pl.data.research[field] === researchTracks.lastTile(field)) {
       if (field === ResearchField.Terraforming) {
         //gets federation token
         if (this.terraformingFederation) {
-          data.gainFederationToken(this.terraformingFederation);
+          pl.gainFederationToken(this.terraformingFederation);
           this.terraformingFederation = undefined;
         }
       } else if (field === ResearchField.Navigation) {
@@ -612,7 +612,7 @@ export default class Engine {
     assert( leechCommand == leech , `Impossible to charge ${leech} power`);
 
     const powerLeeched = this.players[player].data.chargePower(Number(leech));
-    this.player(player).data.payCost( new Reward(Math.max(powerLeeched - 1, 0), Resource.VictoryPoint));
+    this.player(player).payCosts( [new Reward(Math.max(powerLeeched - 1, 0), Resource.VictoryPoint)]);
   }
 
   [Command.DeclineLeech](player: PlayerEnum) {
@@ -659,7 +659,7 @@ export default class Engine {
 
     if (fromCommand === Command.Action) {
       //rescore a federation
-      this.player(player).data.gainRewards(Reward.parse(federations[federation]));
+      this.player(player).gainRewards(Reward.parse(federations[federation]));
     } else {
 
     }
@@ -688,8 +688,8 @@ export default class Engine {
 
     for (const elem of actions) {
       if (elem.cost === cost && elem.income === income) {
-        this.players[player].data.payCost(new Reward(cost));
-        this.players[player].data.gainReward(new Reward(income));
+        this.players[player].payCosts([new Reward(cost)]);
+        this.players[player].gainRewards([new Reward(income)]);
         return;
       }
     }
@@ -713,12 +713,12 @@ export default class Engine {
     const pl = this.player(player);
     this.boardActions[action] = false;
   
-    pl.data.payCost( new Reward(boardActions[action].cost));
+    pl.payCosts(Reward.parse(boardActions[action].cost));
     //rescore 
     if (action === BoardAction.BoardAction9) {
       this.selectFederationTilePhase(player, Command.Action);
     } else {   
-      pl.data.gainReward( new Reward(boardActions[action].income));
+      pl.gainRewards([new Reward(boardActions[action].income)]);
     };
   }
 
@@ -737,13 +737,13 @@ export default class Engine {
 
     const pl = this.player(player);
 
-    pl.data.gainFederationToken(federation);
+    pl.gainFederationToken(federation);
     this.federations[federation] -= 1;
 
     const hexList = hexes.split(',').map(str => this.map.grid.getS(str));
     for (const hex of hexList) {
       hex.addToFederationOf(player);
     }
-    pl.data.payCost(new Reward(fedInfo.satellites, Resource.GainToken));
+    pl.payCosts([new Reward(fedInfo.satellites, Resource.GainToken)]);
   }
 }

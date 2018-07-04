@@ -293,7 +293,7 @@ export function generate(engine: Engine): AvailableCommand[] {
       // free action - spend
       const acts = []
       for (let i = 0; i < freeActions.length; i++) {
-        if (engine.player(player).data.canPay(Reward.parse(freeActions[i].cost))) {
+        if (engine.player(player).canPay(Reward.parse(freeActions[i].cost))) {
           acts.push({ 
             cost: freeActions[i].cost,
             income: freeActions[i].income  

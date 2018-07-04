@@ -407,7 +407,27 @@ describe("Engine", () => {
     expect(() => new Engine(moves)).to.not.throw();
   });
 
-  it.only("should allow Gleens to get the faction federation", () => {
+  it("should manage Gleens to get ores instead of qics", () => {
+    const moves = parseMoves(`  
+      init 2 randomSeed
+      p1 faction gleens
+      p2 faction terrans
+      p1 build m 0x3
+      p2 build m 2x2
+      p2 build m 4x0
+      p1 build m 3x0
+      p2 booster booster5
+      p1 booster booster3
+    `);
+ 
+    const engine = new Engine(moves);
+    const data = engine.player(Player.Player1).data;
+   
+    expect(data.ores).to.equal(8);
+    expect(data.qics).to.equal(0);
+  });
+
+  it("should allow Gleens to get the faction federation and managing ore instead qic", () => {
     const moves = parseMoves(`
       init 2 randomSeed
       p1 faction gleens
