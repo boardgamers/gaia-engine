@@ -65,7 +65,7 @@ export default class Player {
 
   payCosts(costs: Reward[]) {
     for (let cost of costs) {
-      this.data.payCost(this.factionReward(cost));
+      this.data.payCost(cost);
     }
   }
 
@@ -80,7 +80,7 @@ export default class Player {
     const rewards = Reward.merge(reward);
 
     for (const reward of rewards) {
-      if (!this.data.hasResource(this.factionReward(reward))) {
+      if (!this.data.hasResource(reward)) {
         return false;
       }
     }
@@ -109,7 +109,8 @@ export default class Player {
       //habitability costs
       if (targetPlanet === Planet.Gaia) {
         if (!existingBuilding) {
-          addedCost.push(new Reward(1,Resource.Qic));
+          // different cost for Gleens
+          addedCost.push(this.factionReward(new Reward(1,Resource.Qic)));
         } else {
           // Already a gaia-former on the planet, so no need to pay a Q.I.C.
         }

@@ -136,7 +136,8 @@ export enum Command {
   Spend = "spend",
   Action = "action",
   PlaceLostPlanet  = "lostPlanet",
-  FormFederation = "federation"
+  FormFederation = "federation",
+  EndTurn = "end"
 }
 
 export enum Player {
@@ -236,14 +237,14 @@ export enum Federation {
 }
 
 export enum BoardAction {
-  BoardAction1= "poweraction1",
-  BoardAction2= "poweraction2",
-  BoardAction3= "poweraction3",
-  BoardAction4= "poweraction4",
-  BoardAction5= "poweraction5",
-  BoardAction6= "poweraction6",
-  BoardAction7= "poweraction7",
-  BoardAction8= "qicaction1",
-  BoardAction9= "qicaction2",
-  BoardAction10= "qicaction3",  
+  BoardAction1= "power1",
+  BoardAction2= "power2",
+  BoardAction3= "power3",
+  BoardAction4= "power4",
+  BoardAction5= "power5",
+  BoardAction6= "power6",
+  BoardAction7= "power7",
+  BoardAction8= "qic1",
+  BoardAction9= "qic2",
+  BoardAction10= "qic3",  
 }
