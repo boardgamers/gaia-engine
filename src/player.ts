@@ -148,6 +148,10 @@ export default class Player extends EventEmitter {
 
     this.data.power.area1 = this.board.power.area1;
     this.data.power.area2 = this.board.power.area2;
+
+    if (faction === Faction.Taklons){
+      this.data.brainstone = 1;
+    }
   }
 
   loadEvents(events: Event[]) {
@@ -341,6 +345,9 @@ export default class Player extends EventEmitter {
       this.data.power.area2 += this.data.power.gaia;
     } else {
       this.data.power.area1 += this.data.power.gaia;
+      if (this.data.brainstone === 0 ) {
+        this.data.brainstone = 1;
+      } 
     }
     this.data.power.gaia = 0;
   }
