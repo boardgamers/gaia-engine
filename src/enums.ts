@@ -279,3 +279,11 @@ export enum FinalTile {
   Sector= "sector",
   Satellite= "satellite"
 }
+
+export enum BrainstoneArea {
+  NotInPlay = "notinplay",
+  Area1 = "area1",
+  Area2 = "area2",
+  Area3 = "area3",
+  Gaia = "gaia"
+}

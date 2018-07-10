@@ -1,6 +1,6 @@
 import Reward from "./reward";
 import { GaiaHex } from "./gaia-hex";
-import { ResearchField, Building, Booster, TechTile, AdvTechTile, Federation, Resource } from "./enums";
+import { ResearchField, Building, Booster, TechTile, AdvTechTile, Federation, Resource, BrainstoneArea } from "./enums";
 import { EventEmitter } from "eventemitter3";
 
 const MAX_ORE = 15;
@@ -51,7 +51,7 @@ export default class PlayerData extends EventEmitter {
   greenFederations: number = 0;
   /** Coordinates occupied by buildings */
   occupied: GaiaHex[] = [];
-  brainstone: number = -1;
+  brainstone: BrainstoneArea = BrainstoneArea.NotInPlay;
 
   toJSON(): Object {
     const ret = {
@@ -132,7 +132,7 @@ export default class PlayerData extends EventEmitter {
       case Resource.None: return true;
       case Resource.GainToken: return this.discardablePowerTokens() >= reward.count;
       case Resource.GainTokenGaiaArea: return this.discardablePowerTokens() >= reward.count;
-      case Resource.ChargePower: return this.power.area3 + (this.brainstone === 3 ? 3 : 0) >= reward.count;
+      case Resource.ChargePower: return this.power.area3 + this.brainstoneValue() >= reward.count;
     }
 
     return false;
@@ -151,18 +151,18 @@ export default class PlayerData extends EventEmitter {
   chargePower(power: number) : number {
     let brainstoneUsage = 0;
 
-    if (this.brainstone === 1 ) {
+    if (this.brainstone === BrainstoneArea.Area1 ) {
       brainstoneUsage += 1;
       power -= 1;
-      this.brainstone = 2;
+      this.brainstone = BrainstoneArea.Area2;
     };
 
     const area1ToUp = Math.min(power, this.power.area1);
 
-    if (this.brainstone === 2 && (power - area1ToUp)> 0) {
+    if (this.brainstone === BrainstoneArea.Area2 && (power - area1ToUp)> 0) {
       brainstoneUsage += 1;
       power -=1;
-      this.brainstone = 3;
+      this.brainstone = BrainstoneArea.Area3;
     }
 
     const area2ToUp = Math.min(power - area1ToUp , this.power.area2 + area1ToUp  );
@@ -176,9 +176,9 @@ export default class PlayerData extends EventEmitter {
   }
 
   spendPower(power: number)  {  
-      const totPower = this.power.area3 + (this.brainstone === 3 ? 3 : 0); 
-      if (this.brainstone === 3 && ( power >= 3 || ( power<3 && this.power.area3<power))){
-        this.brainstone = 1;
+      const totPower = this.power.area3 + this.brainstoneValue() ; 
+      if (this.brainstone === BrainstoneArea.Area3 && ( power >= 3 || ( power<3 && this.power.area3<power))){
+        this.brainstone = BrainstoneArea.Area1;
         power = Math.max(power-3,0);
       }
       this.power.area3 -= power;
@@ -195,18 +195,20 @@ export default class PlayerData extends EventEmitter {
     this.power.area2 -= area2ToGaia;
     this.power.area3 -= area3ToGaia;
     if (brainstoneNeeded) {
-      this.brainstone = -1;
+      this.brainstone = BrainstoneArea.NotInPlay;
     }
 
     if (type === Resource.GainTokenGaiaArea) {
       this.power.gaia += area1ToGaia + area2ToGaia + area3ToGaia;
-      this.brainstone = 0;
+      if (brainstoneNeeded) {
+        this.brainstone = BrainstoneArea.Gaia;
+      }
     }
   }
 
   burnPower(power: number) {
-    if ( this.brainstone === 2) {
-      this.brainstone = 3;
+    if ( this.brainstone === BrainstoneArea.Area2) {
+      this.brainstone = BrainstoneArea.Area3;
       power -= 1;
     }
     this.power.area2 -= 2 * power;
@@ -221,7 +223,11 @@ export default class PlayerData extends EventEmitter {
   }
 
   brainstoneInPlay() {
-    return this.brainstone !== -1;
+    return this.brainstone !== BrainstoneArea.NotInPlay;
+  }
+
+  brainstoneValue() {
+    return this.brainstone === BrainstoneArea.Area3 ? 3 : 0;
   }
 
 }
