@@ -189,17 +189,6 @@ export default class Player extends EventEmitter {
       }
     }
   }
-
-  receiveIncomeEvent(spec: string) {
-    for (const event of this.events[Operator.Income]) {
-      if (event.spec === spec && !event.activated) {
-        this.gainRewards(event.rewards);
-        event.activated = true;
-        return;
-      }
-    }
-  }
-  
   
   onResearchAdvanced(field: ResearchField) {
     const events = Event.parse(researchTracks[field][this.data.research[field]]);
@@ -219,13 +208,8 @@ export default class Player extends EventEmitter {
 
     // The mine of the lost planet doesn't grant any extra income
     if (hex.data.planet !== Planet.Lost) {
-      if (building === Building.PlanetaryInstitute) {
-        // PI has different events
-        this.loadEvents( this.board[Building.PlanetaryInstitute].income );
-      } else {
-        // Add income of the building to the list of events
-        this.loadEvent(this.board[building].income[this.data[building]]);
-        }
+      // Add income of the building to the list of events
+      this.loadEvent(this.board[building].income[this.data[building]]);
       this.data[building] += 1;
     }
 
@@ -303,9 +287,7 @@ export default class Player extends EventEmitter {
 
   receiveIncome() {
     for (const event of this.events[Operator.Income]) {
-      if ( !event.activated ) {
-        this.gainRewards(event.rewards);
-      }
+      this.gainRewards(event.rewards);
     }
   }
 

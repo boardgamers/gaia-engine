@@ -269,7 +269,6 @@ describe("Engine", () => {
       p1 build PI -1x2.
       p2 leech 1
       p1 pass booster3
-      p1 income t
       p2 burn 3. spend 3pw for 1o. pass booster5
       p1 build m -2x3. spend 2pw for 2c.
       p1 build ts -4x2.
@@ -702,25 +701,6 @@ describe("Engine", () => {
       
       expect(() => new Engine(moves)).to.not.throw(AssertionError);
     });
-
-    it("should allow to decide incomes", () => {
-      const moves = parseMoves(`
-      init 2 randomSeed
-      p1 faction ivits
-      p2 faction nevlas
-      p2 build m 0x-4
-      p2 build m -1x0
-      p1 build PI -2x-4
-      p2 booster booster4
-      p1 booster booster5
-      p1 income 4pw. income t
-      `);
-      
-      expect(() => new Engine(moves)).to.not.throw(AssertionError);
-    });
-
-
-
   });
 });
 
