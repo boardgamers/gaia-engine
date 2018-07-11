@@ -702,8 +702,6 @@ describe("Engine", () => {
       
       expect(() => new Engine(moves)).to.not.throw(AssertionError);
     });
-<<<<<<< HEAD
-=======
 
     it("should allow to decide incomes", () => {
       const moves = parseMoves(`
@@ -723,7 +721,6 @@ describe("Engine", () => {
 
 
 
->>>>>>> incomePhase with subcommand to manage new token vs power charge actions
   });
 });
 
