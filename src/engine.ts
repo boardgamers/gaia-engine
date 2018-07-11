@@ -21,7 +21,8 @@ import {
   BoardAction,
   Operator,
   ScoringTile,
-  FinalTile
+  FinalTile,
+  BrainstoneArea
 } from './enums';
 import { CubeCoordinates } from 'hexagrid';
 import Event from './events';
@@ -536,7 +537,7 @@ export default class Engine {
     //research VP and remaining resources
     for (const pl of this.playersInOrder()) {
       Object.values(ResearchField).forEach(research => (pl.data.victoryPoints += Math.max(pl.data.research[research] - 3, 0) * 4));
-      const resources = pl.data.ores + pl.data.credits + pl.data.qics + pl.data.knowledge + (Math.floor(pl.data.power.area2 / 2) + pl.data.power.area3);
+      const resources = pl.data.ores + pl.data.credits + pl.data.qics + pl.data.knowledge + Math.floor((pl.data.power.area2 + (BrainstoneArea.Area2 ? 3 : 0))/ 2) + pl.data.power.area3 + (BrainstoneArea.Area3 ? 3 : 0);
       pl.data.victoryPoints += Math.floor(resources/3);
     }
 
