@@ -135,6 +135,7 @@ export enum Command {
   ChooseCoverTechTile = "cover",
   ChooseFederationTile = "fedtile",
   ChooseIncome = "income",
+  FreeIncome = "freeIncome",
   Build = "build",
   Pass = "pass",
   UpgradeResearch = "up",

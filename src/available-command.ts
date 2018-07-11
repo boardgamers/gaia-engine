@@ -88,6 +88,15 @@ export function generate(engine: Engine): AvailableCommand[] {
                 data: subCommand.data
               }
             );
+        
+            //add taklon free action fo rcharge power
+            if (engine.player(player).faction === Faction.Taklons && data[Building.PlanetaryInstitute]>0){
+              this.roundSubCommands.push({
+                name: Command.FreeIncome,
+                player: subCommand.player,
+                data: "1t"
+              });
+            }
             break;
           }
           case Command.ChooseCoverTechTile: {
