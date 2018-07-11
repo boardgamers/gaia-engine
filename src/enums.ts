@@ -282,7 +282,7 @@ export enum FinalTile {
 }
 
 export enum BrainstoneArea {
-  NotInPlay = "notinplay",
+  Out = "out",
   Area1 = "area1",
   Area2 = "area2",
   Area3 = "area3",
