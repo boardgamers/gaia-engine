@@ -148,35 +148,40 @@ export default class PlayerData extends EventEmitter {
    * 
    * @param power Power charged
    */
-  chargePower(power: number): number {
+  chargePower(power: number, apply : boolean = true ): number {
     let brainstoneUsage = 0;
+    let brainstonePos = this.brainstone;
 
-    if (this.brainstone === BrainstoneArea.Area1) {
+    if (brainstonePos === BrainstoneArea.Area1) {
       brainstoneUsage += 1;
       power -= 1;
-      this.brainstone = BrainstoneArea.Area2;
+      brainstonePos = BrainstoneArea.Area2;
     };
 
     const area1ToUp = Math.min(power, this.power.area1);
 
-    if (this.brainstone === BrainstoneArea.Area2 && (power - area1ToUp) > 0) {
+    if (brainstonePos === BrainstoneArea.Area2 && (power - area1ToUp) > 0) {
       brainstoneUsage += 1;
       power -= 1;
-      this.brainstone = BrainstoneArea.Area3;
+      brainstonePos = BrainstoneArea.Area3;
     }
 
     const area2ToUp = Math.min(power - area1ToUp, this.power.area2 + area1ToUp);
 
+    if (apply) {
     this.power.area1 -= area1ToUp;
     this.power.area2 += area1ToUp - area2ToUp;
     this.power.area3 += area2ToUp;
+    this.brainstone = brainstonePos;
+    };
 
     //returns real charged power
     return area1ToUp + area2ToUp + brainstoneUsage;
   }
 
+  
+
   spendPower(power: number) {
-    const totPower = this.power.area3 + this.brainstoneValue();
     if (this.brainstone === BrainstoneArea.Area3 && (power >= 3 || this.power.area3 < power)) {
       this.brainstone = BrainstoneArea.Area1;
       power = Math.max(power - 3, 0);
@@ -195,14 +200,11 @@ export default class PlayerData extends EventEmitter {
     this.power.area2 -= area2ToGaia;
     this.power.area3 -= area3ToGaia;
     if (brainstoneNeeded) {
-      this.brainstone = BrainstoneArea.Out;
+      this.brainstone = type === Resource.GainTokenGaiaArea ? BrainstoneArea.Gaia : BrainstoneArea.Out;
     }
 
     if (type === Resource.GainTokenGaiaArea) {
       this.power.gaia += area1ToGaia + area2ToGaia + area3ToGaia;
-      if (brainstoneNeeded) {
-        this.brainstone = BrainstoneArea.Gaia;
-      }
     }
   }
 
