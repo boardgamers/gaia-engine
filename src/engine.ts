@@ -335,7 +335,9 @@ export default class Engine {
           this.roundSubCommands.push({
             name: Command.Leech,
             player: this.players.indexOf(pl),
-            data: leech
+            data: { 
+              leech : leech + Resource.ChargePower, 
+              freeIncome : pl.faction === Faction.Taklons && pl.data[Building.PlanetaryInstitute]>0 ? "1t" : "" }
           });
         }
       }
@@ -692,13 +694,22 @@ export default class Engine {
     (this[Command.ChooseRoundBooster] as any)(player, booster, Command.Pass);
   }
 
-  [Command.Leech](player: PlayerEnum, leech: string) {
+  [Command.Leech](player: PlayerEnum, income: string) {
     const leechCommand  = this.availableCommand(player, Command.Leech).data;
-  
-    assert( leechCommand == leech , `Impossible to charge ${leech} power`);
+    //leech rewards are including +t, if needed and in the right sequence
+    const leechRewards = Reward.parse(income);
 
-    const powerLeeched = this.players[player].data.chargePower(Number(leech));
-    this.player(player).payCosts( [new Reward(Math.max(powerLeeched - 1, 0), Resource.VictoryPoint)]);
+    const leech =  leechRewards.find( lr => lr.type === Resource.ChargePower);
+    const freeIncome =  leechRewards.find( lr => lr.type === Resource.GainToken);
+    
+    assert( leechCommand.leech == leech , `Impossible to charge ${leech}`);
+    if ( freeIncome ){
+      assert( leechCommand.freeIncome == freeIncome , `Impossible to get ${freeIncome} for free`);
+    }
+   
+    this.player(player).gainRewards(leechRewards);
+    this.player(player).payCosts( [new Reward(Math.max(leech.count - 1, 0), Resource.VictoryPoint)]);
+
   }
 
   [Command.DeclineLeech](player: PlayerEnum) {

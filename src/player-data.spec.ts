@@ -39,7 +39,7 @@ describe("PlayerData", () => {
   });
 
   describe("charge Power with brainstone", () => {
-    it ("should move power tokens from power areas 1 to power area 3 and brainstone from area 2 to 3", () => {
+    it ("should move power tokens from power area 1 to power area 3 and brainstone from area 2 to 3", () => {
       const data = new PlayerData();
       data.power.area1 = 2;
       data.power.area2 = 1;

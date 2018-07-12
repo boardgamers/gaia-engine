@@ -368,7 +368,7 @@ export default class Player extends EventEmitter {
 
   maxLeech(possibleLeech: number){ 
     // considers real chargeable power and victory points
-    return Math.min(possibleLeech, this.data.power.area1 * 2 + this.data.power.area2, this.data.victoryPoints + 1);
+    return Math.min(possibleLeech, this.data.chargePower(possibleLeech,false), this.data.victoryPoints + 1);
   }
   
   gainFederationToken(federation: Federation) {

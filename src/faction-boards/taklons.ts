@@ -1,5 +1,5 @@
-import {BrainstoneArea} from '../enums';
+import { BrainstoneArea } from '../enums';
 
 export default {
-  brainstone: BrainstoneArea.Area1 
-  };
+  brainstone: BrainstoneArea.Area1
+};
