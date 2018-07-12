@@ -148,7 +148,7 @@ export default class PlayerData extends EventEmitter {
    * 
    * @param power Power charged
    */
-  chargePower(power: number, apply : boolean = true ): number {
+  chargePower(power: number, apply: boolean = true): number {
     let brainstoneUsage = 0;
     let brainstonePos = this.brainstone;
 
@@ -169,10 +169,10 @@ export default class PlayerData extends EventEmitter {
     const area2ToUp = Math.min(power - area1ToUp, this.power.area2 + area1ToUp);
 
     if (apply) {
-    this.power.area1 -= area1ToUp;
-    this.power.area2 += area1ToUp - area2ToUp;
-    this.power.area3 += area2ToUp;
-    this.brainstone = brainstonePos;
+      this.power.area1 -= area1ToUp;
+      this.power.area2 += area1ToUp - area2ToUp;
+      this.power.area3 += area2ToUp;
+      this.brainstone = brainstonePos;
     };
 
     //returns real charged power
