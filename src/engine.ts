@@ -891,12 +891,11 @@ export default class Engine {
     const incomeRewards = income.split(",") ;
 
     for (const incR of incomeRewards) {
-      assert(_.find(incomes, { spec: "+" + incR }), `${incR} is not in the available income`);
+      const eventIdx = incomes.findIndex(ev => Reward.match(Reward.parse(incR), ev.rewards));
+      assert(eventIdx > -1, `${incR} is not in the available income`);
+      incomes.splice(eventIdx, 1);
     }
-
-
     this.player(player).receiveIncomeEvent(Reward.parse(income));
-
     this.selectIncomePhase(player);
   }
 

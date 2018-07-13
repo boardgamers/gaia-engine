@@ -194,10 +194,10 @@ export default class Player extends EventEmitter {
     //it's assuming that each reward belongs to a different event, which has only that reward  
     //in case of multiple matchings pick the first
     for ( const rew of rewards) {
-      const event =  this.events[Operator.Income].filter( ev => !ev.activated && ev.rewards.length === 1 && ev.rewards[0].type === rew.type && ev.rewards[0].count === rew.count);
+      const event =  this.events[Operator.Income].find( ev => !ev.activated && Reward.match( [rew], ev.rewards));
       if (event) {
-        this.gainRewards(event[0].rewards);
-        event[0].activated = true;
+        this.gainRewards(event.rewards);
+        event.activated = true;
       }
     }
   }
@@ -215,7 +215,7 @@ export default class Player extends EventEmitter {
   build(building: Building, hex: GaiaHex, cost: Reward[], map: SpaceMap, stepsReq: number) {
     this.payCosts(cost);
     // excluding Gaiaformers as occupied
-    if ( building !== Building.GaiaFormer ) {
+    if (building !== Building.GaiaFormer) {
       this.data.occupied = _.uniqWith([].concat(this.data.occupied, hex), _.isEqual);
     }
 
@@ -223,11 +223,11 @@ export default class Player extends EventEmitter {
     if (hex.data.planet !== Planet.Lost) {
       if (building === Building.PlanetaryInstitute) {
         // PI has different events
-        this.loadEvents( this.board[Building.PlanetaryInstitute].income );
+        this.loadEvents(this.board[Building.PlanetaryInstitute].income);
       } else {
         // Add income of the building to the list of events
         this.loadEvent(this.board[building].income[this.data[building]]);
-        }
+      }
       this.data[building] += 1;
     }
 
@@ -307,6 +307,7 @@ export default class Player extends EventEmitter {
     for (const event of this.events[Operator.Income]) {
       if ( !event.activated ) {
         this.gainRewards(event.rewards);
+        event.activated = true;
       }
     }
   }

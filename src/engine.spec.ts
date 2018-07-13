@@ -536,7 +536,7 @@ describe("Engine", () => {
       expect(() => new Engine(moves)).to.not.throw();
     });
 
-    it.only("should allow to decide incomes", () => {
+    it("should allow to decide incomes", () => {
       const moves = parseMoves(`
         init 2 randomSeed
         p1 faction ivits
