@@ -885,7 +885,6 @@ export default class Engine {
     pl.loadEvents(Event.parse(boardActions[action].income));
     this.endTurnPhase(player, Command.Action);
   }
-  
   [Command.ChooseIncome](player: PlayerEnum, income: string) {
     const { incomes } = this.availableCommand(player, Command.ChooseIncome).data;
     const spec = '+' + income;
