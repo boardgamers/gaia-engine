@@ -535,6 +535,26 @@ describe("Engine", () => {
 
       expect(() => new Engine(moves)).to.not.throw();
     });
+
+    it.only("should allow to decide incomes", () => {
+      const moves = parseMoves(`
+        init 2 randomSeed
+        p1 faction ivits
+        p2 faction nevlas
+        p2 build m 0x-4
+        p2 build m -1x0
+        p1 build PI -2x-4
+        p2 booster booster4
+        p1 booster booster5
+      `);
+
+      const engine = new Engine(moves);
+      expect(() => new Engine([...moves, "p1 income 4pw,t"])).to.not.throw();
+      expect(() => new Engine([...moves, "p1 income t,2pw"])).to.not.throw();
+      expect(() => new Engine([...moves, "p1 income t"])).to.not.throw();
+      expect(() => new Engine([...moves, "p1 income 3pw"])).to.throw();
+    });
+
   });
 
   describe("tech tiles", () => {
@@ -754,25 +774,6 @@ describe("Engine", () => {
 
       expect(() => new Engine(moves)).to.not.throw(AssertionError);
     });
-
-    it("should allow to decide incomes", () => {
-      const moves = parseMoves(`
-      init 2 randomSeed
-      p1 faction ivits
-      p2 faction nevlas
-      p2 build m 0x-4
-      p2 build m -1x0
-      p1 build PI -2x-4
-      p2 booster booster4
-      p1 booster booster5
-      p1 income 4pw. income t
-      `);
-      
-      expect(() => new Engine(moves)).to.not.throw(AssertionError);
-    });
-
-
-
   });
 });
 

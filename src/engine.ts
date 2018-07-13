@@ -885,13 +885,17 @@ export default class Engine {
     pl.loadEvents(Event.parse(boardActions[action].income));
     this.endTurnPhase(player, Command.Action);
   }
+  
   [Command.ChooseIncome](player: PlayerEnum, income: string) {
     const { incomes } = this.availableCommand(player, Command.ChooseIncome).data;
-    const spec = '+' + income;
+    const incomeRewards = income.split(",") ;
 
-    assert(_.find(incomes, { spec: spec }), `${income} is not in the available income`);
+    for (const incR of incomeRewards) {
+      assert(_.find(incomes, { spec: "+" + incR }), `${incR} is not in the available income`);
+    }
 
-    this.player(player).receiveIncomeEvent(spec);
+
+    this.player(player).receiveIncomeEvent(Reward.parse(income));
 
     this.selectIncomePhase(player);
   }

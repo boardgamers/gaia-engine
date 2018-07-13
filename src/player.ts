@@ -189,12 +189,15 @@ export default class Player extends EventEmitter {
     }
   }
 
-  receiveIncomeEvent(spec: string) {
-    for (const event of this.events[Operator.Income]) {
-      if (event.spec === spec && !event.activated) {
-        this.gainRewards(event.rewards);
-        event.activated = true;
-        return;
+  receiveIncomeEvent(rewards: Reward[]) {
+    //this is managing Income phase to solve +t and +pw ordering
+    //it's assuming that each reward belongs to a different event, which has only that reward  
+    //in case of multiple matchings pick the first
+    for ( const rew of rewards) {
+      const event =  this.events[Operator.Income].filter( ev => !ev.activated && ev.rewards.length === 1 && ev.rewards[0].type === rew.type && ev.rewards[0].count === rew.count);
+      if (event) {
+        this.gainRewards(event[0].rewards);
+        event[0].activated = true;
       }
     }
   }
