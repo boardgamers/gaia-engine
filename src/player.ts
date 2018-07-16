@@ -397,12 +397,8 @@ export default class Player extends EventEmitter {
   gaiaPhase() {
     /* Move gaia power tokens to regular power areas */
     // Terrans move directly to power area 2
-    // for Terrans is done  after gaia Income selection
     if (this.faction === Faction.Terrans) {
       this.data.power.area2 += this.data.power.gaia;
-      if (this.data.brainstone === BrainstoneArea.Gaia ) {
-        this.data.brainstone = BrainstoneArea.Area2;
-      }
     } else {
       this.data.power.area1 += this.data.power.gaia;
       if (this.data.brainstone === BrainstoneArea.Gaia ) {
