@@ -228,6 +228,7 @@ export default class Player extends EventEmitter {
     if (building !== Building.GaiaFormer) {
       this.data.occupied = _.uniqWith([].concat(this.data.occupied, hex), _.isEqual);
     }
+
     // The mine of the lost planet doesn't grant any extra income
     if (hex.data.planet !== Planet.Lost) {
       if (building === Building.PlanetaryInstitute) {
@@ -399,6 +400,9 @@ export default class Player extends EventEmitter {
     // for Terrans is done  after gaia Income selection
     if (this.faction === Faction.Terrans) {
       this.data.power.area2 += this.data.power.gaia;
+      if (this.data.brainstone === BrainstoneArea.Gaia ) {
+        this.data.brainstone = BrainstoneArea.Area2;
+      }
     } else {
       this.data.power.area1 += this.data.power.gaia;
       if (this.data.brainstone === BrainstoneArea.Gaia ) {

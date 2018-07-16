@@ -519,7 +519,6 @@ export default class Engine {
     for (const pl of this.playersInOrder()) {
       pl.data.gainFinalVictoryPoints();
     }
-
   }
 
   leechingPhase(player: PlayerEnum, hex: GaiaHex) {

@@ -226,8 +226,8 @@ export default class PlayerData extends EventEmitter {
   returnGaiaPower(power: number) {
     // this is used only by Terrans for the conversion
     // they are pay tg to get x
-    this.power.area1 += this.hasPlanetaryInstitute ? 0 : power;
-    this.power.area2 += this.hasPlanetaryInstitute ? power : 0;
+    this.power.area1 += this.hasPlanetaryInstitute() ? 0 : power;
+    this.power.area2 += this.hasPlanetaryInstitute() ? power : 0;
     this.power.gaia -= power;
   }
 
