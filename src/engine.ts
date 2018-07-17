@@ -142,9 +142,7 @@ export default class Engine {
   }
 
   playersInTableOrderFromCurrent(): Player[] {
-    let originalOrder = this.players.filter(pl => pl.player >= this.currentPlayer).map(pl => pl.player);
-    originalOrder = originalOrder.concat(this.players.filter(pl => pl.player < this.currentPlayer).map(pl => pl.player));
-    return originalOrder.map(i => this.players[i]);
+    return [...this.players.slice(this.currentPlayer + 1), ...this.players.slice(0, this.currentPlayer)];
   }
 
   nextSubcommandPlayer(): PlayerEnum {
