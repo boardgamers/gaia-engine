@@ -297,6 +297,19 @@ export enum Phase {
   RoundIncome = "roundIncome",
   RoundGaia = "roundGaia",
   RoundMove = "roundMove",
+  RoundLeech = "roundLeech",
   RoundFinish = "roundFinish",
   EndGame = "endGame"
+}
+
+export enum SubPhase {
+  BeforeMove = "beforeMove",
+  AfterMove = "afterMove",
+  UpgradeResearch = "upgradeResearch",
+  PlaceLostPlanet = "placeLostPlanet",
+  ChooseTechTile = "chooseTechTile",
+  CoverTechTile = "coverTechTile",
+  ChooseFederationTile = "chooseFederationTile",
+  RescoreFederationTile = "rescoreFederationTile",
+  BuildMine = "buildMine"
 }

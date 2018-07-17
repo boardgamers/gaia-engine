@@ -281,7 +281,8 @@ describe("Engine", () => {
     const vp = data.victoryPoints;
     const powerTokens = data.discardablePowerTokens();
     engine.move("p1 federation -1x2,-2x3,-3x2,-3x3,-3x4,-4x2 fed2");
-    expect(data.victoryPoints).to.equal(vp + 8);
+    // gets vp for federation and for fed building from roundbooster
+    expect(data.victoryPoints).to.equal(vp + 8 + 5);
     expect(data.power.gaia).to.be.gte(0);
     expect(data.satellites).to.equal(2);
     expect(data.discardablePowerTokens()).to.be.equal(powerTokens - 2, "The 2 satellites should remove one power token each");
@@ -335,8 +336,8 @@ describe("Engine", () => {
       p2 leech 1pw
       p4 leech 1pw
       p2 build ts 1x5.
-      p1 leech 2pw
       p4 leech 1pw
+      p1 leech 2pw
       p3 build ts -4x1.
       p2 leech 1pw
       p4 build ts 1x4.
@@ -344,8 +345,8 @@ describe("Engine", () => {
       p2 leech 2pw
       p1 build m -6x6.
       p2 burn 1. build lab 1x5. tech int. spend 1pw for 1c.
-      p1 decline
       p4 decline
+      p1 decline
       p3 build lab -4x1. tech terra.
       p2 leech 1pw
       p4 build lab 1x4. tech sci. burn 2.
