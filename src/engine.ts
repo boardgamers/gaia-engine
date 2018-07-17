@@ -64,6 +64,7 @@ export default class Engine {
   terraformingFederation: Federation;
   availableCommands: AvailableCommand[] = [];
   phase: Phase ;
+  prevPhase: Phase;
   round: number = Round.None;
   /** Order of players in the turn */
   turnOrder: PlayerEnum[] = [];
@@ -79,6 +80,7 @@ export default class Engine {
   // used to transit between phases
   tempTurnOrder: PlayerEnum[] = [];
   tempCurrentPlayer: PlayerEnum;
+  leechingSource: GaiaHex;
 
   constructor(moves: string[] = []) {
     this.phaseBegin(Phase.SetupInit);
@@ -225,25 +227,10 @@ export default class Engine {
 
       }
 
-      this.endTurn(player, command);
+      this.player(player).endTurn();
+      this.moveToNextPlayer(command);
     }
 
-    // If all players have passed
-    if (this.turnOrder.length === 0) {
-      this.phaseEnd();
-    }
-
-  }
-
-  endTurn(player: PlayerEnum, command: Command) {
-    this.player(player).endTurn();
-    // if not subactions Let the next player move based on the command
-    this.moveToNextPlayer(command);
-
-    // If all players have passed
-    if (this.turnOrder.length === 0) {
-      this.phaseEnd();
-    }
   }
 
    /** Next player to make a move, after current player makes their move */
@@ -255,13 +242,24 @@ export default class Engine {
       return;
     }
 
+    // check if need to start a leechingPhase
+    if ( this.phase === Phase.RoundMove && this.leechingSource ) {
+      this.phaseBegin(Phase.RoundLeech);
+      return;
+    }
+
     if (command === Command.Pass) {
       this.passedPlayers.push(this.currentPlayer);
     }
 
-    if ( [Phase.SetupFaction, Phase.SetupBuilding, Phase.SetupBooster, Phase.RoundIncome, Phase.RoundGaia].includes(this.phase) || command === Command.Pass) {
+    if ( [Phase.SetupFaction, Phase.SetupBuilding, Phase.SetupBooster, Phase.RoundIncome, Phase.RoundGaia, Phase.RoundLeech].includes(this.phase) || command === Command.Pass) {
       this.turnOrder.splice(playerPos, 1);
       this.currentPlayer = this.turnOrder[playerPos % this.turnOrder.length];
+
+      // If all players have passed
+      if (this.turnOrder.length === 0) {
+        this.phaseEnd();
+      }
       return;
     }
 
@@ -302,7 +300,12 @@ export default class Engine {
         break;
       }
       case Phase.RoundMove : {
-        return Phase.RoundFinish;
+        this.beginRoundMovePhase();
+        break;
+      }
+      case Phase.RoundLeech : {
+        this.leechingPhase();
+        break;
       }
       case Phase.RoundFinish : {
         this.cleanUpPhase();
@@ -316,6 +319,7 @@ export default class Engine {
   }
 
   phaseEnd() {
+    this.prevPhase = this.phase;
     const nextPhase = this.onPhaseEnd(this.phase);
     this.phaseBegin( nextPhase );
   }
@@ -351,6 +355,11 @@ export default class Engine {
       }
       case Phase.RoundMove : {
         return Phase.RoundFinish;
+      }
+      case Phase.RoundLeech : {
+        this.restoreTurnOrder();
+        this.leechingSource = undefined;
+        return Phase.RoundMove;
       }
       case Phase.RoundFinish: {
         if (this.round === 6) {
@@ -457,6 +466,13 @@ export default class Engine {
     }
   }
 
+  beginRoundMovePhase() {
+    // returning from a leech phase
+    if ( this.prevPhase === Phase.RoundLeech ) {
+      this.moveToNextPlayer(Command.Leech);
+    }
+  }
+
   cleanUpPhase() {
     if (this.round < 1) {
       return;
@@ -517,37 +533,37 @@ export default class Engine {
     }
   }
 
-  leechingPhase(player: PlayerEnum, hex: GaiaHex) {
-    // exclude setup rounds
-    if (this.round <= 0) {
-      return;
-    }
+  leechingPhase() {
+    this.storeTurnOrder();
+    const newOrder = [];
     // Gaia-formers & space stations don't trigger leech
-    if (stdBuildingValue(hex.buildingOf(player)) === 0) {
+    if (stdBuildingValue(this.leechingSource.buildingOf(this.currentPlayer)) === 0) {
       return;
     }
     // From rules, this is in clockwise order. We assume the order of players in this.players is the
     // clockwise order
     for (const pl of this.players) {
       // Exclude the one who made the building from the leech
-      if (pl !== this.player(player)) {
+      if (pl !== this.player(this.currentPlayer)) {
         let leech = 0;
         for (const loc of pl.data.occupied) {
-          if (this.map.distance(loc, hex) < ISOLATED_DISTANCE) {
+          if (this.map.distance(loc, this.leechingSource) < ISOLATED_DISTANCE) {
             leech = Math.max(leech, pl.buildingValue(this.map.grid.get(loc).buildingOf(pl.player), this.map.grid.get(loc).data.planet));
           }
         }
         leech = pl.maxLeech(leech);
         if (leech > 0) {
-          this.roundSubCommands.push({
-            name: Command.Leech,
-            player: pl.player,
-            data: {
-              leech : leech + Resource.ChargePower,
-              freeIncome : pl.faction === Faction.Taklons && pl.data.hasPlanetaryInstitute() ? "1t" : "" }
-          });
+          newOrder.push( pl.player );
+          pl.data.leechPossible = leech;
         }
       }
+    }
+
+    if (newOrder.length === 0) {
+      this.phaseEnd();
+    } else {
+      this.turnOrder = newOrder;
+      this.setFirstPlayer();
     }
   }
 
@@ -775,7 +791,10 @@ export default class Engine {
           this.roundSubCommands.splice(0, 1);
         }
 
-        this.leechingPhase(player, hex);
+        // will trigger a LeechPhase
+        if (this.phase === Phase.RoundMove && building !== Building.GaiaFormer) {
+          this.leechingSource = hex;
+        }
 
         if ( pl.faction === Faction.Gleens && building === Building.PlanetaryInstitute) {
           pl.gainFederationToken(Federation.FederationGleens);
@@ -837,6 +856,7 @@ export default class Engine {
 
     this.player(player).gainRewards(leechRewards);
     this.player(player).payCosts( [new Reward(Math.max(leech.count - 1, 0), Resource.VictoryPoint)]);
+    this.player(player).data.leechPossible = 0;
 
   }
 
@@ -922,9 +942,8 @@ export default class Engine {
     hex.data.planet = Planet.Lost;
 
     this.player(player).build(Building.Mine, hex, [], this.map, 0);
-    this.leechingPhase(player, hex);
 
-    return;
+    this.leechingSource = hex;
   }
 
   [Command.Spend](player: PlayerEnum, costS: string, _for: "for", incomeS: string) {
@@ -967,13 +986,6 @@ export default class Engine {
 
     pl.payCosts(cost);
     pl.gainRewards(income);
-
-    // check if it's a gaia phase and don't need gaia selection
-    if (this.phase === Phase.RoundGaia) {
-      if ( !pl.needGaiaSelection ) {
-        this.moveToNextPlayer(Command.ChooseIncome);
-      }
-    }
   }
 
   [Command.BurnPower](player: PlayerEnum, cost: string) {
@@ -1011,7 +1023,6 @@ export default class Engine {
     const { needed } = pl.needIncomeSelection();
     if (!needed) {
       pl.receiveIncome();
-      this.moveToNextPlayer(Command.ChooseIncome);
     }
   }
 
