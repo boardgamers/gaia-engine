@@ -1,11 +1,11 @@
-import { Command, Faction, Building, Planet, Round, Booster, Resource, Player, Operator, BoardAction, ResearchField, TechTilePos } from './enums';
+import { Command, Faction, Building, Planet, Round, Booster, Resource, Player, Operator, BoardAction, ResearchField, TechTilePos, Phase } from './enums';
 import Engine from './engine';
 import * as _ from 'lodash';
 import factions from './factions';
 import * as assert from "assert";
 import { upgradedBuildings } from './buildings';
 import Reward from './reward';
-import { boardActions, freeActions, freeActionsHadschHallas } from './actions';
+import { boardActions, freeActions, freeActionsHadschHallas, freeActionsTerrans } from './actions';
 import * as researchTracks from './research-tracks';
 import { terraformingStepsRequired } from './planets';
 
@@ -21,12 +21,12 @@ export default interface AvailableCommand {
 }
 
 export function generate(engine: Engine): AvailableCommand[] {
-
-  switch (engine.round) {
-    case Round.Init: {
+  const player = engine.currentPlayer;
+  switch (engine.phase) {
+    case Phase.SetupInit: {
       return [{ name: Command.Init }];
     }
-    case Round.SetupFaction: {
+    case Phase.SetupFaction: {
       return [
         {
           name: Command.ChooseFaction,
@@ -39,8 +39,7 @@ export function generate(engine: Engine): AvailableCommand[] {
         }
       ];
     }
-    case Round.SetupBuilding: {
-      const player = engine.currentPlayer;
+    case Phase.SetupBuilding: {
       const planet = engine.player(player).planet;
       const buildings = [];
 
@@ -65,11 +64,20 @@ export function generate(engine: Engine): AvailableCommand[] {
         }
       ];
     }
-    case Round.SetupRoundBooster:
-    default : {
+    case Phase.SetupBooster: {
+      return possibleRoundBoosters(engine, player);
+    }
+    case Phase.RoundIncome: {
+      return possibleIncomes(engine, player);
+    }
+    case Phase.RoundGaia: {
+      return possibleGaias(engine, player);
+    }
+
+    case Phase.RoundMove : {
       // We are in a regular round
       const commands = [];
-      const player = engine.currentPlayer;
+
 
       assert(player !== undefined, "Problem with the engine, player to play is unknown");
 
@@ -104,6 +112,11 @@ export function generate(engine: Engine): AvailableCommand[] {
             break;
           }
 
+          case Command.Spend: {
+            commands.push(...possibleFreeActions(engine, subCommand.player));
+            break;
+          }
+
           case Command.UpgradeResearch: {
             commands.push(...possibleResearchAreas(engine, subCommand.player, "", subCommand.data));
             break;
@@ -133,22 +146,8 @@ export function generate(engine: Engine): AvailableCommand[] {
         return commands;
       } // end subCommand
 
-      // add boosters
-      {
-        const boosters = Object.values(Booster).filter(booster => engine.roundBoosters[booster]);
-
-        commands.push(
-          {
-            name: engine.round === Round.SetupRoundBooster ? Command.ChooseRoundBooster : Command.Pass,
-            player,
-            data: { boosters }
-          }
-        );
-
-        if (engine.round === Round.SetupRoundBooster) {
-          return commands;
-        }
-      } // end add boosters
+      //  boosters
+      commands.push(...possibleRoundBoosters(engine, player));
 
       const buildingCommand = possibleBuildings(engine, player);
       if (buildingCommand) {
@@ -156,28 +155,7 @@ export function generate(engine: Engine): AvailableCommand[] {
       }
 
       // Add federations
-      {
-        const possibleTiles = Object.keys(engine.federations).filter(key => engine.federations[key] > 0);
-
-        if (possibleTiles.length > 0) {
-          const possibleFederations = engine.player(player).availableFederations(engine.map);
-
-          if (possibleFederations.length > 0) {
-            commands.push({
-              name: Command.FormFederation,
-              player,
-              data: {
-                tiles: possibleTiles,
-                federations: possibleFederations.map(fed => ({
-                  planets: fed.planets,
-                  satellites: fed.satellites,
-                  hexes: fed.hexes.map(hex => hex.toString()).sort().join(',')
-                }))
-              }
-            });
-          }
-        }
-      }
+      commands.push(...possibleFederations(engine, player));
 
       // Upgrade research
       commands.push(...possibleResearchAreas(engine, player, UPGRADE_RESEARCH_COST));
@@ -329,7 +307,7 @@ export function possibleBoardActions(engine: Engine, player: Player) {
 
 }
 
-export function possibleFreeActions(engine: Engine, player: Player) {
+export function possibleFreeActions(engine: Engine, player: Player, gaiaPhase?: boolean) {
   // free action - spend
   const pl = engine.player(player);
   const acts = [];
@@ -338,6 +316,11 @@ export function possibleFreeActions(engine: Engine, player: Player) {
   let pool = freeActions;
   if (pl.faction === Faction.HadschHallas && pl.data.hasPlanetaryInstitute()) {
     pool = [].concat(pool, freeActionsHadschHallas);
+  }
+
+  // freeActions for Terrans during gaiaPhase
+  if ( engine.phase === Phase.RoundGaia && pl.needGaiaSelection() ) {
+    pool = freeActionsTerrans;
   }
 
   for (const freeAction of pool) {
@@ -450,5 +433,71 @@ export function possibleSpaceLostPlanet(engine: Engine, player: Player) {
     });
   }
 
+  return commands;
+}
+
+export function possibleRoundBoosters(engine: Engine, player: Player) {
+  const commands = [];
+  const boosters = Object.values(Booster).filter(booster => engine.roundBoosters[booster]);
+
+  commands.push(
+    {
+      name: engine.phase === Phase.SetupBooster ? Command.ChooseRoundBooster : Command.Pass,
+      player,
+      data: { boosters }
+    }
+  );
+
+  return commands;
+}
+
+export function possibleFederations(engine: Engine, player: Player) {
+  const commands = [];
+  const possibleTiles = Object.keys(engine.federations).filter(key => engine.federations[key] > 0);
+
+  if (possibleTiles.length > 0) {
+    const possibleFeds = engine.player(player).availableFederations(engine.map);
+
+    if (possibleFeds.length > 0) {
+      commands.push({
+        name: Command.FormFederation,
+        player,
+        data: {
+          tiles: possibleTiles,
+          federations: possibleFeds.map(fed => ({
+            planets: fed.planets,
+            satellites: fed.satellites,
+            hexes: fed.hexes.map(hex => hex.toString()).sort().join(',')
+          }))
+        }
+      });
+    }
+  }
+  return commands;
+}
+
+export function possibleIncomes(engine: Engine, player: Player) {
+  const commands = [];
+  const pl = engine.player(player);
+
+  const { events, needed } = pl.needIncomeSelection();
+
+  if (needed) {
+    commands.push({
+      name: Command.ChooseIncome,
+      player,
+      data: { incomes: events }
+    });
+  }
+  return commands;
+}
+
+export function possibleGaias(engine: Engine, player: Player) {
+  const commands = [];
+  const pl = engine.player(player);
+
+  if (pl.needGaiaSelection()) {
+    commands.push(...possibleFreeActions(engine, player));
+  }
   return commands;
 }

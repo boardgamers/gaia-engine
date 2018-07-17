@@ -244,7 +244,7 @@ describe("Engine", () => {
     expect(() => engine.move("p1 up gaia.")).to.throw();
   });
 
-  it("should allow to form a federation and gain rewards", () => {
+  it("should allow to form a federation and gain rewards. Gaia phase to test income for terrans", () => {
     const moves = parseMoves(`
       init 2 randomSeed
       p1 faction terrans
@@ -270,6 +270,7 @@ describe("Engine", () => {
       p2 leech 1pw
       p1 pass booster3
       p1 income t
+      p1 spend 4tg for 1k. spend 2tg for 2c
       p2 burn 3. spend 3pw for 1o. pass booster5
       p1 build m -2x3. spend 2pw for 2c.
       p1 build ts -4x2.
@@ -284,6 +285,9 @@ describe("Engine", () => {
     expect(data.power.gaia).to.be.gte(0);
     expect(data.satellites).to.equal(2);
     expect(data.discardablePowerTokens()).to.be.equal(powerTokens - 2, "The 2 satellites should remove one power token each");
+
+    // Test other federation with the same buildings
+    expect(() => new Engine([...moves, "p1 federation -1x2,-2x3,-3x3,-3x4,-4x2,-4x3 fed2"])).to.not.throw();
   });
 
   it("should allow poweraction", () => {
@@ -466,7 +470,7 @@ describe("Engine", () => {
       expect(engine.player(Player.Player1).data.victoryPoints).to.equal(vp + 2);
     });
   });
-  
+
   describe("lantids", () => {
     it ("should be able to build a mine on other players' planets", () => {
       const moves = parseMoves(`
@@ -729,8 +733,6 @@ describe("Engine", () => {
       expect(engine.player(Player.Player1).data.advTechTiles).to.include(engine.advTechTiles[AdvTechTilePos.GaiaProject].tile);
       expect(engine.advTechTiles[AdvTechTilePos.GaiaProject].numTiles).to.equal(0);
     });
-
-
   });
 
   describe("boosters", () => {
@@ -818,14 +820,15 @@ describe("Engine", () => {
       const engine = new Engine(moves);
 
       // tslint:disable-next-line no-unused-expression
-      expect(() => new Engine([...moves, "p1 special tempstep"])).to.not.throw();
-      expect(new Engine([...moves, "p1 special tempstep"]).player(Player.Player1).events[Operator.Activate][0].activated).to.be.true;
+      expect(() => new Engine([...moves, "p1 special step"])).to.not.throw();
+      // tslint:disable-next-line no-unused-expression
+      expect(new Engine([...moves, "p1 special step"]).player(Player.Player1).events[Operator.Activate][0].activated).to.be.true;
 
       // test free action before and after, and to build something different then a mine
-      expect(() => new Engine([...moves, "p1 special tempstep. spend 1o for 1c. build m -1x-1. spend 1o for 1c."])).to.not.throw();
-      expect(() => new Engine([...moves, "p1 special tempstep. spend 1o for 1c. build ts -4x2"])).to.throw();
-      expect(() => new Engine([...moves, "p1 special tempstep. build m -1x-1. spend 1o for 1c."])).to.not.throw();
-     
+      expect(() => new Engine([...moves, "p1 special step. spend 1o for 1c. build m -1x-1. spend 1o for 1c."])).to.not.throw();
+      expect(() => new Engine([...moves, "p1 special step. spend 1o for 1c. build ts -4x2"])).to.throw();
+      expect(() => new Engine([...moves, "p1 special step. build m -1x-1. spend 1o for 1c."])).to.not.throw();
+
     });
 
     it("should allow to use a range special action from a booster", () => {
@@ -839,9 +842,9 @@ describe("Engine", () => {
         p1 build m -3x4
         p2 booster booster5
         p1 booster booster4
-        p1 special tempstep. spend 1o for 1c. build m -1x-1.
+        p1 special step. spend 1o for 1c. build m -1x-1.
         p2 leech 1pw
-        p2 special 3temprange. spend 1o for 1c. build m 3x-3.
+        p2 special range+3. spend 1o for 1c. build m 3x-3.
       `);
 
       expect(() => new Engine(moves)).to.not.throw(AssertionError);
