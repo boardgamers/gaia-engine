@@ -82,7 +82,6 @@ export default class Engine {
 
   constructor(moves: string[] = []) {
     this.phaseBegin(Phase.SetupInit);
-    this.generateAvailableCommands();
     this.loadMoves(moves);
   }
 
@@ -184,6 +183,7 @@ export default class Engine {
       const split = move.split(' ');
       command = split[0] as Command;
 
+      this.generateAvailableCommands();
       const available = this.availableCommands;
       const commandNames = available.map(cmd => cmd.name);
 
@@ -203,15 +203,16 @@ export default class Engine {
       );
       const player = +playerS[1] - 1;
 
-      assert(this.playerToMove() === (player as PlayerEnum), "Wrong turn order in move " + move + ", expected " + this.playerToMove() + ' found ' + player);
+      // assert(this.playerToMove() === (player as PlayerEnum), "Wrong turn order in move " + move + ", expected " + this.playerToMove() + ' found ' + player);
 
       const moves = move.substr(2, move.length - 2).trim().split('.');
 
-      for (let i = 0; i < moves.length; i++)  {
-        const split = moves[i].trim().split(' ');
+      for ( const mv of moves )  {
+        const split = mv.trim().split(' ');
         // the final dot is the end turn command
         command = split[0] === "" ? Command.EndTurn : split[0] as Command;
 
+        this.generateAvailableCommands();
         const available = this.availableCommands;
         const commandNames = available.map(cmd => cmd.name);
 
@@ -222,21 +223,16 @@ export default class Engine {
 
         (this[command] as any)(player as PlayerEnum, ...split.slice(1));
 
-        // exclude last move
-        if (i < moves.length - 1) {
-          this.generateAvailableCommands();
-        }
       }
 
       this.endTurn(player, command);
     }
 
+    // If all players have passed
     if (this.turnOrder.length === 0) {
-      // If all players have passed
       this.phaseEnd();
     }
 
-    this.generateAvailableCommands();
   }
 
   endTurn(player: PlayerEnum, command: Command) {
@@ -244,8 +240,8 @@ export default class Engine {
     // if not subactions Let the next player move based on the command
     this.moveToNextPlayer(command);
 
+    // If all players have passed
     if (this.turnOrder.length === 0) {
-      // If all players have passed
       this.phaseEnd();
     }
   }
