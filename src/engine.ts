@@ -141,6 +141,12 @@ export default class Engine {
     return this.turnOrder.map(i => this.players[i]);
   }
 
+  playersInStartinglOrderfromCurrent(): Player[] {
+    let originalOrder = this.players.filter(pl => pl.player >= this.currentPlayer).map(pl => pl.player);
+    originalOrder = originalOrder.concat(this.players.filter(pl => pl.player < this.currentPlayer).map(pl => pl.player));
+    return originalOrder.map(i => this.players[i]);
+  }
+
   nextSubcommandPlayer(): PlayerEnum {
     if (this.roundSubCommands.length > 0) {
       return this.roundSubCommands[0].player;
@@ -540,7 +546,7 @@ export default class Engine {
     }
     // From rules, this is in clockwise order. We assume the order of players in this.players is the
     // clockwise order
-    for (const pl of this.players) {
+    for (const pl of this.playersInStartinglOrderfromCurrent()) {
       // Exclude the one who made the building from the leech
       if (pl !== this.player(this.currentPlayer)) {
         let leech = 0;
