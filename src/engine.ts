@@ -65,6 +65,7 @@ export default class Engine {
   phase: Phase ;
   prevPhase: Phase;
   subPhase: SubPhase;
+
   round: number = Round.None;
   /** Order of players in the turn */
   turnOrder: PlayerEnum[] = [];
@@ -213,6 +214,7 @@ export default class Engine {
         (this[command] as any)(player as PlayerEnum, ...split.slice(1));
 
       }
+
       // implicit endTurn
       if (command !== Command.EndTurn) {
         this.player(player).endTurn();
@@ -232,6 +234,12 @@ export default class Engine {
       return;
     }
 
+    // check if need to start a leechingPhase
+    if ( this.phase === Phase.RoundMove && this.leechingSource ) {
+      this.phaseBegin(Phase.RoundLeech);
+      return;
+    }
+
     if (command === Command.Pass) {
       this.passedPlayers.push(this.currentPlayer);
     }
@@ -240,6 +248,7 @@ export default class Engine {
       this.turnOrder.splice(playerPos, 1);
       this.currentPlayer = this.turnOrder[playerPos % this.turnOrder.length];
       this.subPhase = SubPhase.BeforeMove;
+
       // If all players have passed
       if (this.turnOrder.length === 0) {
         this.phaseEnd();
@@ -678,7 +687,7 @@ export default class Engine {
         if (this.phase === Phase.RoundMove && building !== Building.GaiaFormer) {
           this.leechingSource = hex;
         }
-
+        
         if ( pl.faction === Faction.Gleens && building === Building.PlanetaryInstitute) {
           pl.gainFederationToken(Federation.FederationGleens);
         }
