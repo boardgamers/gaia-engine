@@ -204,8 +204,7 @@ export default class Engine {
         'Wrong player format, expected p1, p2, ...'
       );
       const player = +playerS[1] - 1;
-
-      // assert(this.playerToMove() === (player as PlayerEnum), "Wrong turn order in move " + move + ", expected " + this.playerToMove() + ' found ' + player);
+      assert(this.currentPlayer === (player as PlayerEnum), "Wrong turn order in move " + move + ", expected " + this.currentPlayer + ' found ' + player);
 
       const moves = move.substr(2, move.length - 2).trim().split('.');
 
@@ -215,8 +214,7 @@ export default class Engine {
         command = split[0] === "" ? Command.EndTurn : split[0] as Command;
 
         this.generateAvailableCommands();
-        const available = this.availableCommands;
-        const commandNames = available.map(cmd => cmd.name);
+        const commandNames = this.availableCommands.map(cmd => cmd.name);
 
         assert(
           this.availableCommand(player, command),
