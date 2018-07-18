@@ -75,6 +75,11 @@ export default class Player extends EventEmitter {
   payCosts(costs: Reward[]) {
     for (const cost of costs) {
       this.data.payCost(cost);
+
+      if (this.faction === Faction.Terrans && cost.type === Resource.GainTokenGaiaArea) {
+        this.data.power.area2 += cost.count;
+      }
+
     }
   }
 
