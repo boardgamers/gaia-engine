@@ -213,8 +213,7 @@ export default class Engine {
       }
 
       // implicit endTurn
-      if (command !== Command.EndTurn) {
-        this.player(player).endTurn();
+      if (this.subPhase === SubPhase.AfterMove) {
         this.moveToNextPlayer(command);
       }
     }
@@ -645,6 +644,7 @@ export default class Engine {
     );
 
     this.players[player].loadFaction(faction as Faction);
+    this.subPhase = SubPhase.AfterMove;
   }
 
   [Command.ChooseRoundBooster](player: PlayerEnum, booster: Booster, fromCommand: Command = Command.ChooseRoundBooster ) {
@@ -731,11 +731,13 @@ export default class Engine {
     this.player(player).gainRewards(leechRewards);
     this.player(player).payCosts( [new Reward(Math.max(leech.count - 1, 0), Resource.VictoryPoint)]);
     this.player(player).data.leechPossible = 0;
+    this.subPhase = SubPhase.AfterMove;
 
   }
 
   [Command.DeclineLeech](player: PlayerEnum) {
     // no action needeed
+    this.subPhase = SubPhase.AfterMove;
   }
 
   [Command.EndTurn](player: PlayerEnum) {
@@ -867,6 +869,12 @@ export default class Engine {
 
     pl.payCosts(cost);
     pl.gainRewards(income);
+
+    // Terrans are no needing more conversion for gaia?
+    if ( this.phase === Phase.RoundGaia && pl.faction === Faction.Terrans && !pl.canGaiaTerrans() ) {
+      this.subPhase = SubPhase.AfterMove;
+    }
+
   }
 
   [Command.BurnPower](player: PlayerEnum, cost: string) {
@@ -904,6 +912,7 @@ export default class Engine {
     const { needed } = pl.needIncomeSelection();
     if (!needed) {
       pl.receiveIncome();
+      this.subPhase = SubPhase.AfterMove;
     }
   }
 

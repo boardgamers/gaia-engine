@@ -328,7 +328,7 @@ export function possibleBoardActions(engine: Engine, player: Player) {
 
 }
 
-export function possibleFreeActions(engine: Engine, player: Player, gaiaPhase?: boolean) {
+export function possibleFreeActions(engine: Engine, player: Player) {
   // free action - spend
   const pl = engine.player(player);
   const acts = [];
