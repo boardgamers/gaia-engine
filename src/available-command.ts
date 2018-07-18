@@ -5,7 +5,7 @@ import factions from './factions';
 import * as assert from "assert";
 import { upgradedBuildings } from './buildings';
 import Reward from './reward';
-import { boardActions, freeActions, freeActionsHadschHallas, freeActionsTerrans } from './actions';
+import { boardActions, freeActions, freeActionsHadschHallas, freeActionsTerrans, freeActionsItars } from './actions';
 import * as researchTracks from './research-tracks';
 
 
@@ -70,7 +70,21 @@ export function generate(engine: Engine): AvailableCommand[] {
       return possibleIncomes(engine, player);
     }
     case Phase.RoundGaia: {
-      return possibleGaias(engine, player);
+      switch (engine.subPhase) {
+        case SubPhase.ChooseTechTile : {
+          return possibleTechTiles(engine, player);
+          break;
+        }
+        case SubPhase.CoverTechTile : {
+          return possibleCoverTechTiles(engine, player);
+          break;
+        }
+        case SubPhase.UpgradeResearch : {
+          return possibleResearchAreas(engine, player, "");
+          break;
+        }
+        default: return possibleGaiaFreeActions(engine, player);
+      }
     }
     case Phase.RoundLeech: {
       return possibleLeech(engine, player);
@@ -326,12 +340,12 @@ export function possibleFreeActions(engine: Engine, player: Player, gaiaPhase?: 
   }
 
   // freeActions for Terrans during gaiaPhase
-  if ( engine.phase === Phase.RoundGaia && pl.needGaiaSelection() ) {
+  if ( engine.phase === Phase.RoundGaia && pl.canGaiaTerrans() ) {
     pool = freeActionsTerrans;
   }
 
   // freeActions for Itars during gaiaPhase
-  if ( engine.phase === Phase.RoundGaia && pl.needGaiaTechTile() ) {
+  if ( engine.phase === Phase.RoundGaia && pl.canGaiaItars() ) {
     pool = freeActionsItars;
   }
 
@@ -499,11 +513,11 @@ export function possibleIncomes(engine: Engine, player: Player) {
   return commands;
 }
 
-export function possibleGaias(engine: Engine, player: Player) {
+export function possibleGaiaFreeActions(engine: Engine, player: Player) {
   const commands = [];
   const pl = engine.player(player);
 
-  if (pl.needGaiaSelection()) {
+  if (pl.canGaiaTerrans() || pl.canGaiaItars()) {
     commands.push(...possibleFreeActions(engine, player));
   }
   return commands;

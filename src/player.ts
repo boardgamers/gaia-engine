@@ -337,11 +337,11 @@ export default class Player extends EventEmitter {
     return { events: gainTokens.concat(chargePowers), needed: gainTokens.length > 0 && chargePowers.length > 0};
   }
 
-  needGaiaSelection(): boolean {
+  canGaiaTerrans(): boolean {
     return this.data.gaiaPowerTokens() > 0 && this.faction === Faction.Terrans && this.data.hasPlanetaryInstitute();
   }
 
-  needGaiaTechTile(): boolean {
+  canGaiaItars(): boolean {
     return this.data.gaiaPowerTokens() >= 4 && this.faction === Faction.Itars && this.data.hasPlanetaryInstitute();
   }
 
