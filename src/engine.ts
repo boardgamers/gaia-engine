@@ -213,7 +213,7 @@ export default class Engine {
       }
 
       // implicit endTurn
-      if (this.subPhase === SubPhase.AfterMove) {
+      if (this.subPhase === SubPhase.EndMove) {
         this.moveToNextPlayer(command);
       }
     }
@@ -644,7 +644,7 @@ export default class Engine {
     );
 
     this.players[player].loadFaction(faction as Faction);
-    this.subPhase = SubPhase.AfterMove;
+    this.subPhase = SubPhase.EndMove;
   }
 
   [Command.ChooseRoundBooster](player: PlayerEnum, booster: Booster, fromCommand: Command = Command.ChooseRoundBooster ) {
@@ -656,7 +656,7 @@ export default class Engine {
 
     this.roundBoosters[booster] = false;
     this.players[player].getRoundBooster(booster);
-    this.subPhase = SubPhase.AfterMove;
+    this.subPhase = SubPhase.EndMove;
   }
 
   [Command.Build](player: PlayerEnum, building: Building, location: string) {
@@ -689,6 +689,11 @@ export default class Engine {
           // Gain tech tile if lab / academy
         if ( building === Building.ResearchLab || building === Building.Academy1 || building === Building.Academy2) {
           this.subPhase = SubPhase.ChooseTechTile;
+          return;
+        }
+
+        if ( this.phase === Phase.SetupBuilding) {
+          this.subPhase = SubPhase.EndMove;
           return;
         }
 
@@ -731,13 +736,13 @@ export default class Engine {
     this.player(player).gainRewards(leechRewards);
     this.player(player).payCosts( [new Reward(Math.max(leech.count - 1, 0), Resource.VictoryPoint)]);
     this.player(player).data.leechPossible = 0;
-    this.subPhase = SubPhase.AfterMove;
+    this.subPhase = SubPhase.EndMove;
 
   }
 
   [Command.DeclineLeech](player: PlayerEnum) {
     // no action needeed
-    this.subPhase = SubPhase.AfterMove;
+    this.subPhase = SubPhase.EndMove;
   }
 
   [Command.EndTurn](player: PlayerEnum) {
@@ -872,7 +877,7 @@ export default class Engine {
 
     // Terrans are no needing more conversion for gaia?
     if ( this.phase === Phase.RoundGaia && pl.faction === Faction.Terrans && !pl.canGaiaTerrans() ) {
-      this.subPhase = SubPhase.AfterMove;
+      this.subPhase = SubPhase.EndMove;
     }
 
   }
@@ -912,7 +917,7 @@ export default class Engine {
     const { needed } = pl.needIncomeSelection();
     if (!needed) {
       pl.receiveIncome();
-      this.subPhase = SubPhase.AfterMove;
+      this.subPhase = SubPhase.EndMove;
     }
   }
 
