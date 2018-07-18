@@ -447,7 +447,7 @@ export default class Engine {
       }
     }
     for (const player of this.playersInOrder()) {
-      if (player.needGaiaSelection()) {
+      if (player.needGaiaSelection() || player.needGaiaTechTile() ) {
         newOrder.push(player.player);
       } else {
         player.gaiaPhase();
@@ -758,7 +758,6 @@ export default class Engine {
 
     const advanced = tileAvailable.type === "adv";
     const stdNoFree = ![TechTilePos.Free1, TechTilePos.Free2, TechTilePos.Free3].includes(pos as any) &&  tileAvailable.type === "std";
-    const std =  [TechTilePos.Free1, TechTilePos.Free2, TechTilePos.Free3].includes(pos as any);
 
     if (advanced) {
       // need to cover before to upgrade

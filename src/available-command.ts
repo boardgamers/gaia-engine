@@ -330,6 +330,11 @@ export function possibleFreeActions(engine: Engine, player: Player, gaiaPhase?: 
     pool = freeActionsTerrans;
   }
 
+  // freeActions for Itars during gaiaPhase
+  if ( engine.phase === Phase.RoundGaia && pl.needGaiaTechTile() ) {
+    pool = freeActionsItars;
+  }
+
   for (const freeAction of pool) {
     if (pl.canPay(Reward.parse(freeAction.cost))) {
       acts.push({

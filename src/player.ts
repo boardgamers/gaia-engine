@@ -336,6 +336,11 @@ export default class Player extends EventEmitter {
     return this.data.gaiaPowerTokens() > 0 && this.faction === Faction.Terrans && this.data.hasPlanetaryInstitute();
   }
 
+  needGaiaTechTile(): boolean {
+    return this.data.gaiaPowerTokens() >= 4 && this.faction === Faction.Itars && this.data.hasPlanetaryInstitute();
+  }
+
+
   receiveIncome() {
     for (const event of this.events[Operator.Income]) {
       if ( !event.activated ) {
