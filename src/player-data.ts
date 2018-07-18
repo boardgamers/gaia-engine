@@ -227,6 +227,7 @@ export default class PlayerData extends EventEmitter {
 
   discardGaiaPower(power: number) {
     this.power.gaia -= power;
+    this.emit('discardGaia', power);
   }
 
   burnablePower() {
@@ -240,6 +241,7 @@ export default class PlayerData extends EventEmitter {
     }
     this.power.area2 -= 2 * power;
     this.power.area3 += power;
+    this.emit('burn', power);
   }
 
   advanceResearch(which: ResearchField, count: number) {
