@@ -419,7 +419,7 @@ describe("Engine", () => {
     expect(() => new Engine([...moves, "p2 leech 1t,3pw"])).to.not.throw();
   });
 
-  it.only("should allow Ambas to use piswap", () => {
+  it("should allow Ambas to use piswap", () => {
     const moves = parseMoves(`
       init 2 randomSeed
       p1 faction nevlas
@@ -440,7 +440,7 @@ describe("Engine", () => {
     `);
 
     expect(() => new Engine([...moves, "p2 special piswap. piswap 5x-3."])).to.not.throw();
-    expect(() => new Engine([...moves, "p2 special piswap. piswap 3x-3."])).to.not.throw();
+    expect(() => new Engine([...moves, "p2 special piswap. piswap 3x-3."])).to.throw();
   });
 
 
