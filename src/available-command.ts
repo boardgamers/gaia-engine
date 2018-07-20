@@ -339,6 +339,8 @@ export function possibleResearchAreas(engine: Engine, player: Player, cost: stri
         continue;
       }
 
+      if (!engine.player(player).canUpgradeResearchBaltaks(field)) { continue; }
+
       tracks.push({
         field,
         to: destTile,

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import Engine from "..";
 import { AssertionError } from "assert";
-import { Player, Federation, Operator, AdvTechTilePos, Building } from "./enums";
+import { Player, Federation, Operator, AdvTechTilePos, Building, ResearchField } from "./enums";
 
 describe("Engine", () => {
 
@@ -632,348 +632,368 @@ describe("Engine", () => {
       });
   });
 
-  describe("free actions", () => {
-    it("should allow free action as first move after setupsetup is correct", () => {
+  describe('Baltaks', () => {
+    it.only('should test ability to upgrade navigation', () => {
       const moves = parseMoves(`
         init 2 randomSeed
         p1 faction terrans
-        p2 faction nevlas
-        p1 build m -4x-1
-        p2 build m -1x0
-        p2 build m 0x-4
+        p2 faction baltaks
         p1 build m -4x2
-        p2 booster booster3
-        p1 booster booster4
-        p1 spend 1q for 1o
-      `);
-
-      expect(() => new Engine(moves)).to.not.throw();
-    });
-
-    it("should allow free actions to spend 1q for 1c", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction nevlas
-        p1 build m -4x-1
-        p2 build m -1x0
-        p2 build m 0x-4
-        p1 build m -4x2
-        p2 booster booster3
-        p1 booster booster4
-        p1 spend 1q for 1c
-      `);
-
-      expect(() => new Engine(moves)).to.not.throw();
-    });
-
-    it("should prevent unreasonable free actions", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction nevlas
-        p1 build m -4x-1
-        p2 build m -1x0
-        p2 build m 0x-4
-        p1 build m -4x2
-        p2 booster booster3
-        p1 booster booster4
-      `);
-
-      const engine = new Engine(moves);
-
-      expect(() => engine.move("p1 spend ~ for ~")).to.throw();
-      expect(() => engine.move("p1 spend 1q for 2o")).to.throw();
-    });
-
-    it("should allow to do free actions after main actions", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction nevlas
+        p2 build m -4x0
+        p2 build m -1x-3
         p1 build m -1x2
-        p2 build m -1x0
-        p2 build m 0x-4
-        p1 build m -4x2
         p2 booster booster4
-        p1 booster booster7
-        p1 build ts -1x2. burn 2.
-        p2 leech 1pw
-        p2 build ts -1x0. burn 1
+        p1 booster booster3
+        p1 pass booster5
+        p2 up nav.
       `);
 
-      expect(() => new Engine(moves)).to.not.throw(AssertionError);
+      expect(() => new Engine(moves)).to.throw();
     });
-
-    it("should grant hadsch hallas new free actions after the PI is built", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction hadsch-hallas
-        p2 faction ambas
-        p1 build m -5x0
-        p2 build m -3x-2
-        p2 build m 2x4
-        p1 build m 1x5
-        p2 booster booster3
-        p1 booster booster7
-        p1 build ts 1x5.
-        p2 leech 1pw
-        p2 build ts 2x4.
-        p1 leech 2pw
-        p1 build PI 1x5. spend 4c for 1k
-      `);
-
-      expect(() => new Engine(moves)).to.not.throw();
-    });
-
-    it("should allow to decide incomes", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction ivits
-        p2 faction nevlas
-        p2 build m 0x-4
-        p2 build m -1x0
-        p1 build PI -2x-4
-        p2 booster booster4
-        p1 booster booster5
-      `);
-
-      const engine = new Engine(moves);
-      expect(() => new Engine([...moves, "p1 income 4pw,t"])).to.not.throw();
-      expect(() => new Engine([...moves, "p1 income t,2pw"])).to.not.throw();
-      expect(() => new Engine([...moves, "p1 income t"])).to.not.throw();
-      expect(() => new Engine([...moves, "p1 income 3pw"])).to.throw();
-    }) ;
-
   });
+
+  describe("free actions", () => {
+  it("should allow free action as first move after setupsetup is correct", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction nevlas
+      p1 build m -4x-1
+      p2 build m -1x0
+      p2 build m 0x-4
+      p1 build m -4x2
+      p2 booster booster3
+      p1 booster booster4
+      p1 spend 1q for 1o
+    `);
+
+    expect(() => new Engine(moves)).to.not.throw();
+  });
+
+  it("should allow free actions to spend 1q for 1c", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction nevlas
+      p1 build m -4x-1
+      p2 build m -1x0
+      p2 build m 0x-4
+      p1 build m -4x2
+      p2 booster booster3
+      p1 booster booster4
+      p1 spend 1q for 1c
+    `);
+
+    expect(() => new Engine(moves)).to.not.throw();
+  });
+
+  it("should prevent unreasonable free actions", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction nevlas
+      p1 build m -4x-1
+      p2 build m -1x0
+      p2 build m 0x-4
+      p1 build m -4x2
+      p2 booster booster3
+      p1 booster booster4
+    `);
+
+    const engine = new Engine(moves);
+
+    expect(() => engine.move("p1 spend ~ for ~")).to.throw();
+    expect(() => engine.move("p1 spend 1q for 2o")).to.throw();
+  });
+
+  it("should allow to do free actions after main actions", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction nevlas
+      p1 build m -1x2
+      p2 build m -1x0
+      p2 build m 0x-4
+      p1 build m -4x2
+      p2 booster booster4
+      p1 booster booster7
+      p1 build ts -1x2. burn 2.
+      p2 leech 1pw
+      p2 build ts -1x0. burn 1
+    `);
+
+    expect(() => new Engine(moves)).to.not.throw(AssertionError);
+  });
+
+  it("should grant hadsch hallas new free actions after the PI is built", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction hadsch-hallas
+      p2 faction ambas
+      p1 build m -5x0
+      p2 build m -3x-2
+      p2 build m 2x4
+      p1 build m 1x5
+      p2 booster booster3
+      p1 booster booster7
+      p1 build ts 1x5.
+      p2 leech 1pw
+      p2 build ts 2x4.
+      p1 leech 2pw
+      p1 build PI 1x5. spend 4c for 1k
+    `);
+
+    expect(() => new Engine(moves)).to.not.throw();
+  });
+
+  it("should allow to decide incomes", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction ivits
+      p2 faction nevlas
+      p2 build m 0x-4
+      p2 build m -1x0
+      p1 build PI -2x-4
+      p2 booster booster4
+      p1 booster booster5
+    `);
+
+    const engine = new Engine(moves);
+    expect(() => new Engine([...moves, "p1 income 4pw,t"])).to.not.throw();
+    expect(() => new Engine([...moves, "p1 income t,2pw"])).to.not.throw();
+    expect(() => new Engine([...moves, "p1 income t"])).to.not.throw();
+    expect(() => new Engine([...moves, "p1 income 3pw"])).to.throw();
+  }) ;
+
+});
 
   describe("tech tiles", () => {
-    it("should prevent picking the same tech tile twice", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction gleens
-        p1 build m -1x2
-        p2 build m -2x2
-        p2 build m -5x5
-        p1 build m -3x4
-        p2 booster booster7
-        p1 booster booster3
-        p1 up gaia.
-        p2 up sci.
-        p1 build ts -3x4.
-        p2 leech 1pw
-        p2 build ts -2x2.
-        p1 leech 2pw
-        p1 build lab -3x4. tech free1. up gaia.
-        p2 leech 2pw
-        p2 build PI -2x2.
-        p1 leech 2pw
-        p1 spend 2q for 2o. burn 4. action power3.
-        p2 build ts -5x5.
-        p1 leech 2pw
-      `);
+  it("should prevent picking the same tech tile twice", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction gleens
+      p1 build m -1x2
+      p2 build m -2x2
+      p2 build m -5x5
+      p1 build m -3x4
+      p2 booster booster7
+      p1 booster booster3
+      p1 up gaia.
+      p2 up sci.
+      p1 build ts -3x4.
+      p2 leech 1pw
+      p2 build ts -2x2.
+      p1 leech 2pw
+      p1 build lab -3x4. tech free1. up gaia.
+      p2 leech 2pw
+      p2 build PI -2x2.
+      p1 leech 2pw
+      p1 spend 2q for 2o. burn 4. action power3.
+      p2 build ts -5x5.
+      p1 leech 2pw
+    `);
 
-      const engine = new Engine(moves);
+    const engine = new Engine(moves);
 
-      expect(() => engine.move('p1 build ac1 -3x4. tech free1')).to.throw();
-    });
-
-    it("should allow to upgrade research area after building a RL, pick tech in nav", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction bescods
-        p1 build m -4x2
-        p2 build m -1x-1
-        p2 build m -2x-5
-        p1 build m -1x2
-        p2 booster booster3
-        p1 booster booster4
-        p1 build ts -1x2.
-        p2 pass booster5
-        p1 build lab -1x2. tech nav.
-      `);
-
-      expect(() => new Engine(moves)).to.not.throw();
-    });
-
-    it("should allow to get an advanced tech tiles when conditions are met", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction gleens
-        p1 build m -1x2
-        p2 build m -2x2
-        p2 build m -5x5
-        p1 build m -3x4
-        p2 booster booster7
-        p1 booster booster3
-        p1 up gaia.
-        p2 up nav.
-        p1 build ts -3x4.
-        p2 leech 1pw
-        p2 build ts -2x2.
-        p1 leech 2pw
-        p1 build lab -3x4. tech free1. up gaia.
-        p2 leech 2pw
-        p2 build PI -2x2.
-        p1 leech 2pw
-        p1 spend 2q for 2o. burn 4. action power3.
-        p2 build ts -5x5.
-        p1 leech 2pw
-        p1 build ac1 -3x4. tech free2. up gaia.
-        p2 leech 3pw
-        p2 pass booster8
-        p1 build gf -2x3.
-        p1 special 4pw. spend 4pw for 1k.
-        p1 pass booster7
-        p2 action power5.
-        p1 build m -2x3.
-        p2 leech 3pw
-        p2 up nav.
-        p1 spend 2k for 2c. build ts -2x3.
-        p2 leech 3pw
-        p2 build m -4x6.
-        p1 leech 4pw
-        p1 federation -1x2,-2x3,-3x4 fed6.
-        p2 build ts -4x6.
-        p1 leech 4pw
-        p1 action power3.
-        p2 federation -2x2,-3x3,-4x4,-4x5,-4x6,-5x5 fed4.
-        p1 special 4pw.
-        p2 spend 3pw for 1o. pass booster3
-        p1 up terra.
-        p1 pass booster4
-        p2 build lab -5x5. tech free2. up nav.
-        p1 leech 4pw
-        p1 build lab -2x3. tech adv-gaia. cover free1. up gaia
-      `);
-
-      const engine = new Engine(moves);
-
-      // tslint:disable-next-line no-unused-expression
-      expect(engine.player(Player.Player1).data.advTechTiles.find(tile => tile.pos === AdvTechTilePos.GaiaProject)).to.not.be.undefined;
-      expect(engine.advTechTiles[AdvTechTilePos.GaiaProject].numTiles).to.equal(0);
-    });
+    expect(() => engine.move('p1 build ac1 -3x4. tech free1')).to.throw();
   });
 
-  describe("boosters", () => {
-    it("should have the correct number of round boosters depending on the number of players", () => {
-      const engine2 = new Engine(['init 2 randomSeed']);
-      const engine3 = new Engine(['init 3 randomSeed']);
-      const engine4 = new Engine(['init 4 randomSeed']);
-      const engine5 = new Engine(['init 5 randomSeed']);
+  it("should allow to upgrade research area after building a RL, pick tech in nav", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction bescods
+      p1 build m -4x2
+      p2 build m -1x-1
+      p2 build m -2x-5
+      p1 build m -1x2
+      p2 booster booster3
+      p1 booster booster4
+      p1 build ts -1x2.
+      p2 pass booster5
+      p1 build lab -1x2. tech nav.
+    `);
 
-      expect(Object.keys(engine2.roundBoosters)).to.have.length(5);
-      expect(Object.keys(engine3.roundBoosters)).to.have.length(6);
-      expect(Object.keys(engine4.roundBoosters)).to.have.length(7);
-      expect(Object.keys(engine5.roundBoosters)).to.have.length(8);
-    });
+    expect(() => new Engine(moves)).to.not.throw();
+  });
 
-    it("should throw when selecting invalid round booster", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction gleens
-        p1 build m -4x-1
-        p2 build m -7x3
-        p2 build m -5x5
-        p1 build m -3x4
-        p2 booster booster2
-      `);
+  it("should allow to get an advanced tech tiles when conditions are met", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction gleens
+      p1 build m -1x2
+      p2 build m -2x2
+      p2 build m -5x5
+      p1 build m -3x4
+      p2 booster booster7
+      p1 booster booster3
+      p1 up gaia.
+      p2 up nav.
+      p1 build ts -3x4.
+      p2 leech 1pw
+      p2 build ts -2x2.
+      p1 leech 2pw
+      p1 build lab -3x4. tech free1. up gaia.
+      p2 leech 2pw
+      p2 build PI -2x2.
+      p1 leech 2pw
+      p1 spend 2q for 2o. burn 4. action power3.
+      p2 build ts -5x5.
+      p1 leech 2pw
+      p1 build ac1 -3x4. tech free2. up gaia.
+      p2 leech 3pw
+      p2 pass booster8
+      p1 build gf -2x3.
+      p1 special 4pw. spend 4pw for 1k.
+      p1 pass booster7
+      p2 action power5.
+      p1 build m -2x3.
+      p2 leech 3pw
+      p2 up nav.
+      p1 spend 2k for 2c. build ts -2x3.
+      p2 leech 3pw
+      p2 build m -4x6.
+      p1 leech 4pw
+      p1 federation -1x2,-2x3,-3x4 fed6.
+      p2 build ts -4x6.
+      p1 leech 4pw
+      p1 action power3.
+      p2 federation -2x2,-3x3,-4x4,-4x5,-4x6,-5x5 fed4.
+      p1 special 4pw.
+      p2 spend 3pw for 1o. pass booster3
+      p1 up terra.
+      p1 pass booster4
+      p2 build lab -5x5. tech free2. up nav.
+      p1 leech 4pw
+      p1 build lab -2x3. tech adv-gaia. cover free1. up gaia
+    `);
 
-      expect(() => new Engine(moves)).to.throw(AssertionError);
-    });
+    const engine = new Engine(moves);
 
-    it("should throw when selecting taken round booster", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction gleens
-        p1 build m -4x-1
-        p2 build m -7x3
-        p2 build m -5x5
-        p1 build m -3x4
-        p2 booster booster4
-        p1 booster booster4
-      `);
-
-      expect(() => new Engine(moves)).to.throw(AssertionError);
-    });
-
-    it("should gain 2 victory points when upgrading to ts and having booster7", () => {
-      // booster7: ["o", "ts | 2vp"]
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction gleens
-        p1 build m -4x-1
-        p2 build m -7x3
-        p2 build m -5x5
-        p1 build m -3x4
-        p2 booster booster7
-        p1 booster booster3
-        p1 build m -4x0.
-        p2 build ts -5x5.
-        p1 leech 1pw
-        p1 pass booster4
-      `);
-
-      const engine = new Engine(moves);
-      const vp = engine.player(Player.Player2).data.victoryPoints;
-
-      engine.move("p2 pass booster3");
-
-      expect(engine.player(Player.Player2).data.victoryPoints).to.equal(vp + 2);
-    });
-
-    it("should allow to use a terraforming special action from a booster", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction nevlas
-        p1 build m -4x2
-        p2 build m -1x0
-        p2 build m 0x-4
-        p1 build m -1x2
-        p2 booster booster5
-        p1 booster booster4
-      `);
-      const engine = new Engine(moves);
-
-      expect(() => new Engine([...moves, "p1 special step"])).to.not.throw();
-      // tslint:disable-next-line no-unused-expression
-      expect(new Engine([...moves, "p1 special step. build m -2x2."]).player(Player.Player1).events[Operator.Activate][0].activated).to.be.true;
-
-      // The step special action can't be used to build a gaia-former
-      expect(() => new Engine([...moves, "p1 special step. build gf -2x3."])).to.throw();
-
-      // test free action before and after, and to build something different then a mine
-      expect(() => new Engine([...moves, "p1 spend 2o for 2c. special step. build m -1x-1"])).to.not.throw();
-      expect(() => new Engine([...moves, "p1 spend 1o for 1c. special step. build ts -4x2"])).to.throw();
-      expect(() => new Engine([...moves, "p1 special step. build m -1x-1. spend 1o for 1c."])).to.not.throw();
-    });
-
-    it("should allow to use a range special action from a booster", () => {
-      const moves = parseMoves(`
-        init 2 randomSeed
-        p1 faction terrans
-        p2 faction nevlas
-        p1 build m -4x2
-        p2 build m -1x0
-        p2 build m 0x-4
-        p1 build m -3x4
-        p2 booster booster4
-        p1 booster booster5
-      `);
-
-      expect(() => new Engine([...moves, "p1 special range+3. build m -4x-1"])).to.not.throw();
-      expect(() => new Engine([...moves, "p1 special range+3. build gf 0x4"])).to.not.throw();
-    });
+    // tslint:disable-next-line no-unused-expression
+    expect(engine.player(Player.Player1).data.advTechTiles.find(tile => tile.pos === AdvTechTilePos.GaiaProject)).to.not.be.undefined;
+    expect(engine.advTechTiles[AdvTechTilePos.GaiaProject].numTiles).to.equal(0);
   });
 });
 
+  describe("boosters", () => {
+  it("should have the correct number of round boosters depending on the number of players", () => {
+    const engine2 = new Engine(['init 2 randomSeed']);
+    const engine3 = new Engine(['init 3 randomSeed']);
+    const engine4 = new Engine(['init 4 randomSeed']);
+    const engine5 = new Engine(['init 5 randomSeed']);
+
+    expect(Object.keys(engine2.roundBoosters)).to.have.length(5);
+    expect(Object.keys(engine3.roundBoosters)).to.have.length(6);
+    expect(Object.keys(engine4.roundBoosters)).to.have.length(7);
+    expect(Object.keys(engine5.roundBoosters)).to.have.length(8);
+  });
+
+  it("should throw when selecting invalid round booster", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction gleens
+      p1 build m -4x-1
+      p2 build m -7x3
+      p2 build m -5x5
+      p1 build m -3x4
+      p2 booster booster2
+    `);
+
+    expect(() => new Engine(moves)).to.throw(AssertionError);
+  });
+
+  it("should throw when selecting taken round booster", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction gleens
+      p1 build m -4x-1
+      p2 build m -7x3
+      p2 build m -5x5
+      p1 build m -3x4
+      p2 booster booster4
+      p1 booster booster4
+    `);
+
+    expect(() => new Engine(moves)).to.throw(AssertionError);
+  });
+
+  it("should gain 2 victory points when upgrading to ts and having booster7", () => {
+    // booster7: ["o", "ts | 2vp"]
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction gleens
+      p1 build m -4x-1
+      p2 build m -7x3
+      p2 build m -5x5
+      p1 build m -3x4
+      p2 booster booster7
+      p1 booster booster3
+      p1 build m -4x0.
+      p2 build ts -5x5.
+      p1 leech 1pw
+      p1 pass booster4
+    `);
+
+    const engine = new Engine(moves);
+    const vp = engine.player(Player.Player2).data.victoryPoints;
+
+    engine.move("p2 pass booster3");
+
+    expect(engine.player(Player.Player2).data.victoryPoints).to.equal(vp + 2);
+  });
+
+  it("should allow to use a terraforming special action from a booster", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction nevlas
+      p1 build m -4x2
+      p2 build m -1x0
+      p2 build m 0x-4
+      p1 build m -1x2
+      p2 booster booster5
+      p1 booster booster4
+    `);
+    const engine = new Engine(moves);
+
+    expect(() => new Engine([...moves, "p1 special step"])).to.not.throw();
+    // tslint:disable-next-line no-unused-expression
+    expect(new Engine([...moves, "p1 special step. build m -2x2."]).player(Player.Player1).events[Operator.Activate][0].activated).to.be.true;
+
+    // The step special action can't be used to build a gaia-former
+    expect(() => new Engine([...moves, "p1 special step. build gf -2x3."])).to.throw();
+
+    // test free action before and after, and to build something different then a mine
+    expect(() => new Engine([...moves, "p1 spend 2o for 2c. special step. build m -1x-1"])).to.not.throw();
+    expect(() => new Engine([...moves, "p1 spend 1o for 1c. special step. build ts -4x2"])).to.throw();
+    expect(() => new Engine([...moves, "p1 special step. build m -1x-1. spend 1o for 1c."])).to.not.throw();
+  });
+
+  it("should allow to use a range special action from a booster", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction nevlas
+      p1 build m -4x2
+      p2 build m -1x0
+      p2 build m 0x-4
+      p1 build m -3x4
+      p2 booster booster4
+      p1 booster booster5
+    `);
+
+    expect(() => new Engine([...moves, "p1 special range+3. build m -4x-1"])).to.not.throw();
+    expect(() => new Engine([...moves, "p1 special range+3. build gf 0x4"])).to.not.throw();
+  });
+});
+});
+
 function parseMoves(moves: string) {
-  return moves.trim().split("\n").map(move => move.trim());
+return moves.trim().split("\n").map(move => move.trim());
 }
