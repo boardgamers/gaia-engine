@@ -339,7 +339,7 @@ export function possibleResearchAreas(engine: Engine, player: Player, cost: stri
         continue;
       }
 
-      if (!engine.player(player).canUpgradeResearchBaltaks(field)) { continue; }
+      if (!engine.player(player).canUpgradeResearch(field)) { continue; }
 
       tracks.push({
         field,

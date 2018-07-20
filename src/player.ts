@@ -351,8 +351,8 @@ export default class Player extends EventEmitter {
     return this.data.gaiaPowerTokens() >= 4 && this.faction === Faction.Itars && this.data.hasPlanetaryInstitute();
   }
 
-  canUpgradeResearchBaltaks( field: ResearchField): boolean {
-    return this.data.hasPlanetaryInstitute() && field === ResearchField.Navigation || field !== ResearchField.Navigation;
+  canUpgradeResearch( field: ResearchField): boolean {
+    return this.faction !== Faction.BalTaks || (this.data.hasPlanetaryInstitute() && field === ResearchField.Navigation || field !== ResearchField.Navigation);
   }
 
   receiveIncome() {
