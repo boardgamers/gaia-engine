@@ -94,24 +94,30 @@ export default class Engine {
   loadMoves(_moves: string[]) {
     const moves = [..._moves];
 
-    this.newTurn = true;
-
     while (moves.length > 0) {
       const move = moves.shift().trim();
 
-      if (!this.move(move)) {
-        assert(moves.length === 0, `Move ${move} (line ${this.moveHistory.length + 1}) is not complete!`);
-        this.newTurn = false;
-      }
-
-      assert(this.turnMoves.length === 0, "Unnecessary commands at the end of the turn: " + this.turnMoves.join('. '));
-
-      this.moveHistory.push(move);
+      this.move(move, moves.length === 0);
     }
   }
 
-  generateAvailableCommands(subphase: SubPhase = SubPhase.BeforeMove): AvailableCommand[] {
-    return this.availableCommands = generateAvailableCommands(this, subphase);
+  move(_move: string, lastMove = true) {
+    this.newTurn = true;
+
+    const move = _move.trim();
+
+    if (!this.executeMove(move)) {
+      assert(lastMove, `Move ${move} (line ${this.moveHistory.length + 1}) is not complete!`);
+      this.newTurn = false;
+    }
+
+    assert(this.turnMoves.length === 0, "Unnecessary commands at the end of the turn: " + this.turnMoves.join('. '));
+
+    this.moveHistory.push(move);
+  }
+
+  generateAvailableCommands(subphase: SubPhase = null, data?: any): AvailableCommand[] {
+    return this.availableCommands = generateAvailableCommands(this, subphase, data);
   }
 
   findAvailableCommand(player: PlayerEnum, command: Command) {
@@ -137,21 +143,22 @@ export default class Engine {
   addPlayer(player: Player) {
     this.players.push(player);
 
-    player.on(`gain-${Resource.TechTile}`, () => {
+    player.data.on(`gain-${Resource.TechTile}`, () => {
       this.processNextMove(SubPhase.ChooseTechTile);
     });
-    player.on(`gain-${Resource.TemporaryStep}`, () => {
+    player.data.on(`gain-${Resource.TemporaryStep}`, () => {
       this.processNextMove(SubPhase.BuildMine);
     });
-    player.on(`gain-${Resource.TemporaryRange}`, () => {
+    player.data.on(`gain-${Resource.TemporaryRange}`, () => {
       this.processNextMove(SubPhase.BuildMineOrGaiaFormer);
     });
-    player.on(`gain-${Resource.RescoreFederation}`, () => {
+    player.data.on(`gain-${Resource.RescoreFederation}`, () => {
       this.processNextMove(SubPhase.RescoreFederationTile);
     });
-    player.on(`gain-${Resource.PISwap}`, () => {
+    player.data.on(`gain-${Resource.PISwap}`, () => {
       this.processNextMove(SubPhase.PISwap);
     });
+    player.data.on('brainstone', areas => this.processNextMove(SubPhase.BrainStone, areas));
   }
 
   player(player: number): Player {
@@ -209,6 +216,10 @@ export default class Engine {
     return engine;
   }
 
+  static parseMoves(moves: string) {
+    return moves.trim().split("\n").map(move => move.trim());
+  }
+
   loadTurnMoves(move: string, params: {split?: boolean, processFirst?: boolean} = {split: true, processFirst: false}) {
     // Todo: replace players by factions in the future
     const playerS = move.substr(0, move.indexOf(' '));
@@ -216,12 +227,19 @@ export default class Engine {
     const player = +playerS[1] - 1;
     assert(this.playerToMove === (player as PlayerEnum), "Wrong turn order in move " + move + ", expected " + this.playerToMove + ' found ' + player);
 
+    const split = _.get(params, 'split', true);
+    const processFirst = _.get(params, 'processFirst', false);
+
+    if (!split) {
+      assert(processFirst);
+    }
+
     this.turnMoves = move.substr(playerS.length).split('.').map(x => x.trim());
 
-    assert (_.get(params, 'split', true) || this.turnMoves.length === 1, "You can only do one command this turn");
-
-    if (_.get(params, 'processFirst', false)) {
+    if (processFirst) {
       this.processNextMove();
+
+      assert(split || this.turnMoves.length === 0, "There is an extra command at the end of the turn: " + this.turnMoves.join('. '));
     }
   }
 
@@ -229,7 +247,7 @@ export default class Engine {
    * Return true if it is a full move
    * @param move
    */
-  move(move: string) {
+  executeMove(move: string) {
     try {
       (this[this.phase])(move);
       this.clearAvailableCommands();
@@ -253,9 +271,9 @@ export default class Engine {
     };
   }
 
-  processNextMove(subphase?: SubPhase) {
+  processNextMove(subphase?: SubPhase, data?: any) {
     if (subphase) {
-      this.generateAvailableCommands(subphase);
+      this.generateAvailableCommands(subphase, data);
       if (this.availableCommands.length === 0) {
         return;
       }
@@ -901,6 +919,11 @@ export default class Engine {
     assert(burn.includes(+cost), `Impossible to burn ${cost} power`);
 
     this.players[player].data.burnPower(+cost);
+  }
+
+  [Command.BrainStone](player: PlayerEnum, dest: string) {
+    assert(this.availableCommand.data.includes(dest), "Possible brain stone areas: " + this.availableCommand.data.join(", "));
+    this.players[player].data.brainstoneDest = dest as any;
   }
 
   [Command.Action](player: PlayerEnum, action: BoardAction) {

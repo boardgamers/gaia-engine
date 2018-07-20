@@ -81,10 +81,7 @@ export default class Player extends EventEmitter {
   }
 
   gainRewards(rewards: Reward[]) {
-    for (const reward of rewards) {
-      this.data.gainReward(this.factionReward(reward));
-      this.emit(`gain-${reward.type}`);
-    }
+    this.data.gainRewards(rewards.map(rew => this.factionReward(rew)));
   }
 
   canPay(reward: Reward[]): boolean {
@@ -116,7 +113,7 @@ export default class Player extends EventEmitter {
 
     // gaiaforming discount
     if (building === Building.GaiaFormer) {
-      addedCost.push(new Reward(-this.data.gaiaFormingDiscount(), Resource.GainToken));
+      addedCost.push(new Reward(-this.data.gaiaFormingDiscount(), Resource.MoveTokenToGaiaArea));
     } else if (building === Building.Mine) {
       // habitability costs
       if (targetPlanet === Planet.Gaia) {
@@ -210,11 +207,12 @@ export default class Player extends EventEmitter {
     // it's assuming that each reward belongs to a different event, which has only that reward
     // in case of multiple matchings pick the first
     for ( const rew of rewards) {
-      const event =  this.events[Operator.Income].find( ev => !ev.activated && Reward.match( [rew], ev.rewards));
-      if (event) {
-        this.gainRewards(event.rewards);
-        event.activated = true;
-      }
+      const event =  this.events[Operator.Income].find(ev => !ev.activated && ev.rewards.some(rew2 => Reward.match([rew], [rew2])));
+
+      assert(event);
+
+      this.gainRewards(event.rewards);
+      event.activated = true;
     }
   }
 
@@ -254,7 +252,7 @@ export default class Player extends EventEmitter {
       // Lantids
       hex.data.additionalMine = this.player;
       if (this.data.hasPlanetaryInstitute()) {
-        this.data.gainReward(new Reward("2k"));
+        this.data.gainRewards([new Reward("2k")]);
       }
     } else {
       hex.data.building = building;
@@ -289,11 +287,6 @@ export default class Player extends EventEmitter {
     // reset temporary benefits
     this.data.temporaryRange = 0;
     this.data.temporaryStep = 0;
-
-    // removes brainstone if still in transit after turn End
-    if ( this.data.brainstone === BrainstoneArea.Transit) {
-      this.data.brainstone = BrainstoneArea.Out;
-    }
   }
 
   pass() {

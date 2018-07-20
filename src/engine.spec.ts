@@ -333,6 +333,32 @@ describe("Engine", () => {
     expect(() => new Engine(moves)).to.not.throw();
   });
 
+  it ("should prevent the rescore fed action when no federation token", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction bescods
+      p2 faction hadsch-hallas
+      p1 build m 3x-2
+      p2 build m -2x-4
+      p2 build m -5x0
+      p1 build m -2x-5
+      p2 booster booster4
+      p1 booster booster3
+      p1 build ts -2x-5.
+      p2 leech 1pw
+      p2 build ts -2x-4.
+      p1 leech 2pw
+      p1 build lab -2x-5. tech nav.
+      p2 leech 2pw
+      p2 build lab -2x-4. tech eco.
+      p1 leech 2pw
+    `);
+
+    const engine = new Engine(moves);
+    expect(engine.player(Player.Player1).data.qics).to.equal(3);
+    expect(() => engine.move("p1 action qic2")).to.throw();
+  });
+
   it("should allow this 4 player game", () => {
     const moves = parseMoves(`
       init 4 randomSeed
@@ -395,32 +421,6 @@ describe("Engine", () => {
     expect(() => JSON.stringify(new Engine([]))).to.not.throw();
   });
 
-  it("should allow Taklons to leech with +t freeIncome", () => {
-    const moves = parseMoves(`
-      init 2 randomSeed
-      p1 faction terrans
-      p2 faction taklons
-      p1 build m -4x-1
-      p2 build m -3x-2
-      p2 build m -6x3
-      p1 build m -4x2
-      p2 booster booster3
-      p1 booster booster4
-      p1 build ts -4x-1.
-      p2 leech 1pw
-      p2 build ts -3x-2.
-      p1 leech 2pw
-      p1 build ts -4x2.
-      p2 leech 1pw
-      p2 build PI -3x-2.
-      p1 leech 2pw
-      p1 build lab -4x-1. tech gaia.
-    `);
-
-    expect(() => new Engine([...moves, "p2 leech 3pw,1t"])).to.not.throw();
-    expect(() => new Engine([...moves, "p2 leech 1t,3pw"])).to.not.throw();
-  });
-
   it("should allow Ambas to use piswap", () => {
     const moves = parseMoves(`
       init 2 randomSeed
@@ -441,8 +441,8 @@ describe("Engine", () => {
       p1 leech 2pw
     `);
 
-    expect(() => new Engine([...moves, "p2 special piswap. piswap 5x-3."])).to.not.throw();
-    expect(() => new Engine([...moves, "p2 special piswap. piswap 3x-3."])).to.throw();
+    expect(() => new Engine([...moves, "p2 special swap-PI. swap-PI 5x-3."])).to.not.throw();
+    expect(() => new Engine([...moves, "p2 special swap-PI. swap-PI 3x-3."])).to.throw();
   });
 
   describe("gleens", () => {
@@ -785,7 +785,36 @@ describe("Engine", () => {
       expect(() => new Engine([...moves, "p1 income t"])).to.not.throw();
       expect(() => new Engine([...moves, "p1 income 3pw"])).to.throw();
     }) ;
+  });
 
+  it("should handle when an income event contains another reward in addition to the power token", () => {
+    const moves = parseMoves(`
+      init 2 randomSeed
+      p1 faction terrans
+      p2 faction itars
+      p1 build m -1x2
+      p2 build m -1x0
+      p2 build m 0x-4
+      p1 build m -4x2
+      p2 booster booster3
+      p1 booster booster4
+      p1 build ts -1x2.
+      p2 leech 1pw
+      p2 build ts -1x0.
+      p1 leech 2pw
+      p1 build lab -1x2. tech gaia.
+      p2 leech 2pw
+      p2 up gaia.
+      p1 up gaia.
+      p2 spend 1o for 1t. build gf -3x1. burn 2.
+      p1 pass booster5
+      p2 build PI -1x0.
+      p1 leech 2pw
+      p2 pass booster4
+    `);
+
+    expect(() => new Engine([...moves, "p2 income 1t,1t. income 1t"])).to.throw();
+    expect(() => new Engine([...moves, "p2 income 1t,1t"])).to.not.throw();
   });
 
   describe("tech tiles", () => {
@@ -1016,5 +1045,5 @@ describe("Engine", () => {
 });
 
 function parseMoves(moves: string) {
-  return moves.trim().split("\n").map(move => move.trim());
+  return Engine.parseMoves(moves);
 }
