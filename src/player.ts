@@ -351,6 +351,10 @@ export default class Player extends EventEmitter {
     return this.data.gaiaPowerTokens() >= 4 && this.faction === Faction.Itars && this.data.hasPlanetaryInstitute();
   }
 
+  canUpgradeResearch( field: ResearchField): boolean {
+    return this.faction !== Faction.BalTaks || (this.data.hasPlanetaryInstitute() && field === ResearchField.Navigation || field !== ResearchField.Navigation);
+  }
+
   receiveIncome() {
     for (const event of this.events[Operator.Income]) {
       if ( !event.activated ) {
@@ -422,6 +426,8 @@ export default class Player extends EventEmitter {
     }
 
     this.data.power.gaia = 0;
+    this.data.gaiaformers += this.data.gaiaformersInGaia;
+    this.data.gaiaformersInGaia = 0;
   }
 
   buildingValue(building: Building, planet: Planet) {
