@@ -352,7 +352,7 @@ export default class Player extends EventEmitter {
   }
 
   canUpgradeResearchBaltaks( field: ResearchField): boolean {
-    return (this.data.hasPlanetaryInstitute() && field === ResearchField.Navigation) || field !== ResearchField.Navigation;
+    return this.data.hasPlanetaryInstitute() && field === ResearchField.Navigation || field !== ResearchField.Navigation;
   }
 
   receiveIncome() {
