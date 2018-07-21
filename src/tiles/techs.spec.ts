@@ -106,12 +106,11 @@ describe("Tech Tiles", () => {
 
     const engine = new Engine(moves);
 
-    // tslint:disable-next-line no-unused-expression
-
     expect(() => engine.move('p1 build lab -2x3. tech adv-gaia. cover free1. up gaia.')).to.throw();
 
     const engine1 = new Engine(moves);
     expect(() => engine1.move('p1 build lab -2x3. tech adv-gaia. cover free1. up terra.')).to.not.throw();
+    // tslint:disable-next-line no-unused-expression
     expect(engine1.player(Player.Player1).data.advTechTiles.find(tile => tile.pos === AdvTechTilePos.GaiaProject)).to.not.be.undefined;
     expect(engine1.advTechTiles[AdvTechTilePos.GaiaProject].numTiles).to.equal(0);
   });
