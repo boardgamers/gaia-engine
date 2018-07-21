@@ -803,13 +803,11 @@ export default class Engine {
       this.player(player).gainAdvTechTile(tileAvailable.tile, tileAvailable.tilePos);
       this.advTechTiles[pos].numTiles -= 1;
       this.processNextMove(SubPhase.CoverTechTile);
-      return;
     } else {
       this.player(player).gainTechTile(tileAvailable.tile, tileAvailable.tilePos);
       this.techTiles[pos].numTiles -= 1;
     }
 
-    // stdTechTile not free
     if (Object.values(ResearchField).includes(pos)) {
       this.advanceResearchAreaPhase(player, "", pos as any);
     } else {
@@ -824,7 +822,6 @@ export default class Engine {
     assert(tileAvailable !== undefined, `Impossible to cover ${tilePos} tile`);
     // remove tile
     this.player(player).coverTechTile(tileAvailable.tilePos);
-    this.processNextMove(SubPhase.UpgradeResearch);
   }
 
   [Command.Special](player: PlayerEnum, income: string) {
