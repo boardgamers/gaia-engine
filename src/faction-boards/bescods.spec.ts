@@ -17,15 +17,15 @@ describe("Bescods", () => {
     p2 booster booster3
     p1 booster booster4
     p1 pass booster8
-    p2 special lowest. up terra.
+    p2 special up-lowest. up terra.
     p2 pass booster5
     p1 pass booster4
     `);
     const engine = new Engine(moves);
-    expect(() => engine.move("p2 special lowest. up terra")).to.throw();
+    expect(() => engine.move("p2 special up-lowest. up terra")).to.throw();
 
     const engine1 = new Engine(moves);
-    expect(() => engine1.move("p2 special lowest. up nav")).to.not.throw();
+    expect(() => engine1.move("p2 special up-lowest. up nav")).to.not.throw();
 
   });
 });

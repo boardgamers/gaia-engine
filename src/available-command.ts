@@ -29,8 +29,7 @@ export function generate(engine: Engine, subPhase: SubPhase = null, data?: any):
   switch (subPhase) {
     case SubPhase.ChooseTechTile: return possibleTechTiles(engine, player);
     case SubPhase.CoverTechTile: return possibleCoverTechTiles(engine, player);
-    case SubPhase.UpgradeResearch: return possibleResearchAreas(engine, player, "");
-    case SubPhase.UpgradeLowest: return possibleResearchAreas(engine, player, "", true);
+    case SubPhase.UpgradeResearch: return possibleResearchAreas(engine, player, "", !!data);
     case SubPhase.PlaceLostPlanet: return possibleSpaceLostPlanet(engine, player);
     case SubPhase.ChooseFederationTile: return possibleFederationTiles(engine, player, "pool");
     case SubPhase.RescoreFederationTile: return possibleFederationTiles(engine, player, "player");
