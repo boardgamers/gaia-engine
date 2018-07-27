@@ -59,7 +59,7 @@ export default class Player extends EventEmitter {
       events: this.events,
       name: this.name,
       auth: this.auth,
-      ownedPlanets:  _.omit(_.countBy(this.data.occupied, 'data.planet'), Planet.Empty)
+      ownedPlanets:  _.omit(_.countBy(this.ownedPlanets, 'data.planet'), Planet.Empty)
     };
   }
 
@@ -157,6 +157,11 @@ export default class Player extends EventEmitter {
 
   maxBuildings(building: Building) {
     return building === Building.GaiaFormer ? (this.data.gaiaformers - this.data.gaiaformersInGaia) : this.board.buildings[building].income.length;
+  }
+
+  get ownedPlanets(): GaiaHex[] {
+    return this.data.occupied.filter(hex => hex.data.planet !== Planet.Empty && hex.colonizedBy(this.player)
+    && !(this.faction === Faction.Lantids && hex.data.additionalMine !== undefined));
   }
 
   loadFaction(faction: Faction, skipIncome = false) {
@@ -422,7 +427,7 @@ export default class Player extends EventEmitter {
   receiveBuildingTriggerIncome(building: Building, planet: Planet) {
     // this is for roundboosters, techtiles and adv tile
     for (const event of this.events[Operator.Trigger]) {
-      if (Condition.matchesBuilding(event.condition, building, planet)) {
+      if (Condition.matchesBuilding(event.condition, building, planet, this.faction)) {
         this.gainRewards(event.rewards);
       }
     }
@@ -538,8 +543,8 @@ export default class Player extends EventEmitter {
       case Condition.ResearchLab: return this.data.buildings[Building.ResearchLab];
       case Condition.PlanetaryInstituteOrAcademy: return this.data.buildings[Building.Academy1] + this.data.buildings[Building.Academy2] + this.data.buildings[Building.PlanetaryInstitute];
       case Condition.Federation: return this.data.tiles.federations.length;
-      case Condition.Gaia: return this.data.occupied.filter(hex => hex.data.planet === Planet.Gaia && hex.colonizedBy(this.player)).length;
-      case Condition.PlanetType: return _.uniq(this.data.occupied.filter(hex => hex.data.planet !== Planet.Empty && hex.colonizedBy(this.player)).map(hex => hex.data.planet)).length;
+      case Condition.Gaia: return this.ownedPlanets.filter(hex => hex.data.planet === Planet.Gaia).length;
+      case Condition.PlanetType: return _.uniq(this.ownedPlanets.map( hex => hex.data.planet)).length;
       case Condition.Sector: return _.uniq(this.data.occupied.filter(hex => hex.colonizedBy(this.player)).map(hex => hex.data.sector)).length;
       case Condition.Structure: return this.data.occupied.filter(hex => hex.colonizedBy(this.player)).length;
       case Condition.StructureFed: return this.data.occupied.filter(hex => hex.colonizedBy(this.player) && hex.belongsToFederationOf(this.player)).length;

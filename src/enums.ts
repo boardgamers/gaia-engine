@@ -93,12 +93,12 @@ export enum Condition {
 }
 
 export namespace Condition {
-  export function matchesBuilding(condition: Condition, building: Building, planet: Planet): boolean {
+  export function matchesBuilding(condition: Condition, building: Building, planet: Planet, faction: Faction): boolean {
     if (condition as string === building as string) {
       return true;
     }
     switch (condition) {
-      case Condition.MineOnGaia: return building === Building.Mine && planet === Planet.Gaia;
+      case Condition.MineOnGaia: return building === Building.Mine && planet === Planet.Gaia && faction !== Faction.Lantids;
       case Condition.PlanetaryInstituteOrAcademy: return building === Building.PlanetaryInstitute || building === Building.Academy1 || building === Building.Academy2;
     }
     return false;

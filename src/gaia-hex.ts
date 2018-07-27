@@ -34,7 +34,7 @@ export class GaiaHex extends Hex<GaiaHexData> {
     if (this.buildingOf(this.data.player) === Building.GaiaFormer) {
       // Gaia former is the only building which doesn't extend range and is not counted
       // into federations
-      return this.data.additionalMine === undefined ? [] : [this.data.additionalMine];
+      return [];
     }
     return [this.data.player, this.data.additionalMine].filter(x => x !== undefined);
   }

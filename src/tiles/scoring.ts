@@ -9,7 +9,7 @@ const roundScorings =  {
   [ScoringTile.Score6]: ["g >> 4vp"],
   [ScoringTile.Score7]: ["PA >> 5vp"],
   [ScoringTile.Score8]: ["ts >> 3vp"],
-  [ScoringTile.Score9]: ["m >> 3vp"],
+  [ScoringTile.Score9]: ["g >> 3vp"],
   [ScoringTile.Score10]: ["PA >> 5vp"]
 };
 
