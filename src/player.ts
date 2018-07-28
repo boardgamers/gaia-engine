@@ -430,7 +430,7 @@ export default class Player extends EventEmitter {
     // this is for roundboosters, techtiles and adv tile
     for (const event of this.events[Operator.Trigger]) {
       // only new mine trigger event for Lantids in other's planet
-      if (Condition.matchesBuilding(event.condition, building, planet) && (!isAdditionalMine || (isAdditionalMine && event.condition === Condition.Mine))) {
+      if (Condition.matchesBuilding(event.condition, building, planet) && (!isAdditionalMine || event.condition === Condition.Mine)) {
         this.gainRewards(event.rewards);
       }
     }
