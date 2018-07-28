@@ -46,6 +46,10 @@ export class GaiaHex extends Hex<GaiaHexData> {
     return stdBuildingValue(this.buildingOf(player)) > 0;
   }
 
+  isMainOccupier(player: Player): boolean {
+    return this.colonizedBy(player) && this.data.additionalMine !== player;
+  }
+
   /** Space stations are not structures, so a trading station built near one will still be isolated */
   hasStructure(): boolean {
     return this.occupied && this.data.building !== Building.GaiaFormer && this.data.building !== Building.SpaceStation;

@@ -59,7 +59,7 @@ export default class Player extends EventEmitter {
       events: this.events,
       name: this.name,
       auth: this.auth,
-      ownedPlanets:  _.omit(_.countBy(this.ownedPlanets, 'data.planet'), Planet.Empty)
+      ownedPlanets:  _.countBy(this.ownedPlanets, 'data.planet')
     };
   }
 
@@ -160,8 +160,7 @@ export default class Player extends EventEmitter {
   }
 
   get ownedPlanets(): GaiaHex[] {
-    return this.data.occupied.filter(hex => hex.data.planet !== Planet.Empty && hex.colonizedBy(this.player)
-    && !(this.faction === Faction.Lantids && hex.data.additionalMine !== undefined));
+    return this.data.occupied.filter(hex => hex.data.planet !== Planet.Empty && hex.isMainOccupier(this.player));
   }
 
   loadFaction(faction: Faction, skipIncome = false) {
@@ -286,8 +285,10 @@ export default class Player extends EventEmitter {
     }
 
     // If the planet is already occupied by someone else
-    if (!upgradedBuilding && hex.occupied()) {
-      // Lantids
+    // Lantids
+    const additionalMine = !upgradedBuilding && hex.occupied();
+
+    if (additionalMine) {
       hex.data.additionalMine = this.player;
       if (this.data.hasPlanetaryInstitute()) {
         this.data.gainRewards([new Reward("2k")]);
@@ -309,8 +310,10 @@ export default class Player extends EventEmitter {
       }
     }
 
-    // get triggered income for new building
-    this.receiveBuildingTriggerIncome(building, hex.data.planet);
+    // get triggered income for new building not a additionalMine for Lantids
+    if (!additionalMine) {
+      this.receiveBuildingTriggerIncome(building, hex.data.planet);
+    }
     // get triggerd terffaorming step income for new building
     if (stepsReq) {
       this.receiveTerraformingStepTriggerIncome(stepsReq);
@@ -427,7 +430,7 @@ export default class Player extends EventEmitter {
   receiveBuildingTriggerIncome(building: Building, planet: Planet) {
     // this is for roundboosters, techtiles and adv tile
     for (const event of this.events[Operator.Trigger]) {
-      if (Condition.matchesBuilding(event.condition, building, planet, this.faction)) {
+      if (Condition.matchesBuilding(event.condition, building, planet)) {
         this.gainRewards(event.rewards);
       }
     }

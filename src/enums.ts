@@ -86,19 +86,19 @@ export enum Condition {
   Satellite = "sat",
 
   // trigger only
-  MineOnGaia = "g",
+  MineOnGaia = "mg",
   AdvanceResearch = "a",
   TerraformStep = "step",
   GaiaFormer = "gf"
 }
 
 export namespace Condition {
-  export function matchesBuilding(condition: Condition, building: Building, planet: Planet, faction: Faction): boolean {
+  export function matchesBuilding(condition: Condition, building: Building, planet: Planet): boolean {
     if (condition as string === building as string) {
       return true;
     }
     switch (condition) {
-      case Condition.MineOnGaia: return building === Building.Mine && planet === Planet.Gaia && faction !== Faction.Lantids;
+      case Condition.MineOnGaia: return building === Building.Mine && planet === Planet.Gaia;
       case Condition.PlanetaryInstituteOrAcademy: return building === Building.PlanetaryInstitute || building === Building.Academy1 || building === Building.Academy2;
     }
     return false;
