@@ -286,9 +286,9 @@ export default class Player extends EventEmitter {
 
     // If the planet is already occupied by someone else
     // Lantids
-    const additionalMine = !upgradedBuilding && hex.occupied();
+    const isAdditionalMine = !upgradedBuilding && hex.occupied();
 
-    if (additionalMine) {
+    if (isAdditionalMine) {
       hex.data.additionalMine = this.player;
       if (this.data.hasPlanetaryInstitute()) {
         this.data.gainRewards([new Reward("2k")]);
@@ -310,10 +310,9 @@ export default class Player extends EventEmitter {
       }
     }
 
-    // get triggered income for new building not a additionalMine for Lantids
-    if (!additionalMine) {
-      this.receiveBuildingTriggerIncome(building, hex.data.planet);
-    }
+    // get triggered income for new building
+    this.receiveBuildingTriggerIncome(building, hex.data.planet, isAdditionalMine);
+
     // get triggerd terffaorming step income for new building
     if (stepsReq) {
       this.receiveTerraformingStepTriggerIncome(stepsReq);
@@ -427,10 +426,11 @@ export default class Player extends EventEmitter {
     }
   }
 
-  receiveBuildingTriggerIncome(building: Building, planet: Planet) {
+  receiveBuildingTriggerIncome(building: Building, planet: Planet, isAdditionalMine: boolean) {
     // this is for roundboosters, techtiles and adv tile
     for (const event of this.events[Operator.Trigger]) {
-      if (Condition.matchesBuilding(event.condition, building, planet)) {
+      // only new mine trigger event for Lantids in other's planet
+      if (Condition.matchesBuilding(event.condition, building, planet) && (!isAdditionalMine || (isAdditionalMine && event.condition === Condition.Mine))) {
         this.gainRewards(event.rewards);
       }
     }
