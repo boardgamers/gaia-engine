@@ -112,16 +112,13 @@ export default class Player extends EventEmitter {
   maxPayRange(reward: Reward[]): number {
     const rewards = Reward.merge(reward);
 
-    let max = 0;
-    while (max >= 0) {
+    for (let max = 0; ; max += 1) {
       for (const rew of rewards) {
         if (!this.data.hasResource(new Reward( rew.count * (max + 1), rew.type ))) {
           return max;
         }
       }
-      max += 1;
     }
-    return max;
   }
 
   canBuild(targetPlanet: Planet, building: Building, {isolated, addedCost, existingBuilding}: {isolated?: boolean, addedCost?: Reward[], existingBuilding?: Building}): {cost?: Reward[], possible: boolean, steps?: number} {
