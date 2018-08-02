@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import Engine from "./engine";
 import { AssertionError } from "assert";
-import { Player, Federation, Operator, AdvTechTilePos, Building } from "./enums";
+import { Player, Federation, Operator, AdvTechTilePos, Building, Condition } from "./enums";
 
 describe("Engine", () => {
   it("should throw when trying to build on the wrong place", () => {
@@ -433,6 +433,128 @@ describe("Engine", () => {
 
     expect(() => new Engine([...moves, "p2 income 1t,1t. income 1t"])).to.throw();
     expect(() => new Engine([...moves, "p2 income 1t,1t"])).to.not.throw();
+  });
+
+  it ("should add a mine to a federation through a nearby satellite", () => {
+    const moves = parseMoves(`
+      init 2 donkey
+      p1 faction terrans
+      p2 faction gleens
+      terrans build m -6x3
+      gleens build m 3x-2
+      gleens build m -5x4
+      terrans build m 3x-1
+      gleens booster booster8
+      terrans booster booster9
+      terrans build ts -6x3.
+      gleens charge 1pw
+      gleens build ts -5x4.
+      terrans charge 2pw
+      terrans build PI -6x3.
+      gleens charge 2pw
+      gleens build lab -5x4. tech terra. up terra.
+      terrans charge 3pw
+      terrans up gaia.
+      gleens special 4pw.
+      terrans action power3.
+      gleens up nav.
+      terrans build ts 3x-1.
+      gleens charge 1pw
+      gleens spend 3pw for 1o. build ac2 -5x4. tech gaia. up gaia.
+      terrans charge 3pw
+      terrans burn 3. spend 4pw for 1q. build m -4x2.
+      gleens decline
+      gleens spend 1pw for 1c. spend 1k for 1c. spend 1pw for 1c. spend 1pw for 1c. build gf -4x3.
+      terrans build gf -7x3.
+      gleens special q.
+      terrans pass booster5
+      gleens pass booster2
+      terrans income 2pw. income 4pw
+      terrans spend 4tg for 1q. spend 1tg for 1c. spend 1tg for 1c
+      terrans build m -7x3.
+      gleens special q.
+      terrans special range+3. build m 1x3.
+      gleens build m -2x5.
+      terrans burn 2. action power3.
+      gleens build m -4x3.
+      terrans decline
+      terrans build gf 0x4.
+      gleens build gf 0x2.
+      terrans build m -2x-1.
+      gleens special 4pw.
+      terrans pass booster10
+      gleens spend 1pw for 1c. pass booster5
+      terrans income 1t
+      terrans spend 4tg for 1q. spend 1tg for 1c. spend 1tg for 1c
+      terrans build ts -4x2.
+      gleens charge 3pw
+      gleens special 4pw.
+      terrans build lab -4x2. tech free2. up gaia.
+      gleens charge 3pw
+      gleens action power5.
+      terrans federation -4x2,-5x3,-6x3,-7x3 fed6.
+      gleens build m 0x2.
+      terrans charge 1pw
+      terrans action power3. spend 1pw for 1c.
+      gleens up nav.
+      terrans up nav.
+      gleens special q.
+      terrans build m 0x4.
+      gleens charge 1pw
+      gleens burn 2. action power4.
+      terrans build gf -3x7.
+      gleens build m 5x-1.
+      terrans charge 2pw
+      terrans spend 1pw for 1c. spend 1pw for 1c. pass booster8
+      gleens spend 1q for 1o. build gf 7x-2.
+      gleens special range+3. build m 4x-7.
+      gleens pass booster10
+      terrans income 4pw
+      terrans spend 4tg for 1k
+      terrans up nav.
+      gleens special 4pw.
+      terrans build m -3x7.
+      gleens charge 1pw
+      gleens build m -4x6.
+      terrans charge 1pw
+      terrans build m -1x0.
+      gleens build m 7x-2.
+      terrans burn 2. action power4.
+      gleens special q.
+      terrans build lab 3x-1. tech terra. up terra.
+      gleens charge 1pw
+      gleens build ts -4x6.
+      terrans charge 1pw
+      terrans special 4pw.
+      gleens build gf 2x-6.
+      terrans build ts 1x3.
+      gleens pass booster2
+      terrans pass booster10
+      terrans income 4pw
+      gleens federation -2x5,-3x5,-4x3,-4x4,-4x5,-4x6,-5x4 fed5.
+      terrans build lab 1x3. tech nav. up nav.
+      gleens charge 1pw
+      gleens special 4pw.
+      terrans action power1.
+      gleens build lab -4x6. tech free3. up int.
+      terrans charge 1pw
+      terrans up terra.
+      gleens special q.
+      terrans up terra.
+      gleens action qic2. fedtile fed5.
+      terrans special 4pw.
+      gleens build ts 3x-2.
+      terrans charge 2pw
+      terrans burn 1. action power4.
+      gleens build lab 3x-2. tech nav. up nav.
+      terrans decline
+      terrans federation -1x0,-2x-1,-2x0,0x0,0x4,1x0,1x3,2x0,2x1,2x2,3x-1 fed4.
+      gleens up nav. lostPlanet 4x-2.
+    `);
+    const engine = new Engine(moves);
+    const structure = engine.player(Player.Player1).eventConditionCount(Condition.StructureFed);
+    engine.move('terrans build m 1x1.');
+    expect(  engine.player(Player.Player1).eventConditionCount(Condition.StructureFed) ).to.be.equal(structure + 1 );
   });
 });
 
