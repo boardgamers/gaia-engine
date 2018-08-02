@@ -315,16 +315,12 @@ export default class Player extends EventEmitter {
     // Add to nearby federation
     if (building !== Building.GaiaFormer && !hex.belongsToFederationOf(this.player)) {
       const group: GaiaHex[] = this.buildingGroup(hex);
-      const sats: GaiaHex[] = this.satelittesNearby(map, hex);
-      const hasFederation = group.some(hx => hx.belongsToFederationOf(this.player));
+      const hasFederation = group.concat(map.grid.neighbours(hex)).some(hx => hx.belongsToFederationOf(this.player));
 
       if (hasFederation) {
         for (const h of group) {
           h.addToFederationOf(this.player);
         }
-      }
-      if (sats.length > 0) {
-        hex.addToFederationOf(this.player);
       }
     }
 
@@ -777,17 +773,6 @@ export default class Player extends EventEmitter {
     };
 
     addHex(hex);
-    return ret;
-  }
-
-  satelittesNearby(map: SpaceMap, hex: GaiaHex): GaiaHex[] {
-    const ret = [];
-
-    for (const sat of map.grid.neighbours(hex)) {
-      if (CubeCoordinates.distance(hex, sat) === 1 && !ret.includes(sat) && sat.hasPlayerSatellite(this.player) ) {
-        ret.push(sat);
-      }
-    }
     return ret;
   }
 

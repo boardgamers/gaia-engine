@@ -63,10 +63,6 @@ export class GaiaHex extends Hex<GaiaHexData> {
     return this.colonizedBy(player) || this.buildingOf(player) === Building.SpaceStation;
   }
 
-  hasPlayerSatellite(player: Player): boolean {
-    return this.belongsToFederationOf(player) && !this.occupied();
-  }
-
   buildingOf(player: Player): Building {
     if (this.data.additionalMine === player) {
       return Building.Mine;
