@@ -78,7 +78,9 @@ export enum Resource {
   TemporaryRange = "range",
   TokenArea3 = "t-a3",
   PISwap = "swap-PI",
-  Turn = "turn"
+  Turn = "turn",
+  Booster = "booster",
+  Culture = "culture"
 }
 
 export enum Operator {
@@ -94,7 +96,7 @@ export enum Operator {
   Pass = "|",
   /** reserved op for planetary institute and academies becoming 4pw structures */
   Special = "PA->4pw",
-  /** Special annoying adv tech */
+  /** Special annoying spaceship federation */
   AdvShip4 = "2ship+4"
 }
 
@@ -238,7 +240,8 @@ export enum Booster {
   Booster10 = "booster10",
   Ship1 = "booster-ship1",
   Ship2 = "booster-ship2",
-  Ship3 = "booster-ship3"
+  Ship3 = "booster-ship3",
+  ShipTech = "booster-tech",
 }
 
 export namespace Booster {
@@ -383,12 +386,14 @@ export enum Federation {
   Fed5 = "fed5",
   Fed6 = "fed6",
   Gleens = "gleens",
-  Ship = "ship"
+  Ship1 = "ship1",
+  Ship2 = "ship2",
+  TradeVolume = "trade"
 }
 
 export namespace Federation {
-  export function values(expansions = 0) {
-    return ["fed1", "fed2", "fed3", "fed4", "fed5", "fed6"] as Federation[];
+  export function values(expansions = 0): Federation[] {
+    return ["fed1", "fed2", "fed3", "fed4", "fed5", "fed6", ...(expansions & Expansion.Spaceships ? ["ship1", "ship2"] : [])] as Federation[];
   }
 }
 
@@ -406,7 +411,9 @@ export enum BoardAction {
   ShipPower1 = "power-ship1",
   ShipPower2 = "power-ship2",
   ShipPower3 = "power-ship3",
-  ShipQic1 = "qic-ship1"
+  ShipQic1 = "qic-ship1",
+  ShipQic2 = "qic-ship2",
+  ShipQic3 = "qic-ship3",
 }
 
 export namespace BoardAction {

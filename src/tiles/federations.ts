@@ -8,7 +8,9 @@ export default  {
   [Federation.Fed5]: "7vp,6c",
   [Federation.Fed6]: "6vp,2k",
   [Federation.Gleens]: "o,k,2c",
-  [Federation.Ship]: "adv-ship"
+  [Federation.Ship1]: "3vp,2ship,move-all+4",
+  [Federation.Ship2]: "2m,2ts", //Industrial craziness
+  [Federation.TradeVolume]: "adv-ship"
 };
 
 export function isGreen(federation: Federation) {

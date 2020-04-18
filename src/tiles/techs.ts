@@ -12,7 +12,7 @@ export default  {
   [TechTile.Tech9]: ["=> 4pw"],
   [TechTile.Ship0]: ["=> move"],
   [TechTile.Ship1]: ["trade >> 2vp"],
-  [TechTile.Ship2]: ["k => range+2"],
+  [TechTile.Ship2]: ["k,o,3c 1=> range+2"],
   [TechTile.Ship3]: ["import > k"],
   [AdvTechTile.AdvTech1]: ["fed | 3vp"],
   [AdvTechTile.AdvTech2]: ["a >> 2vp"],
@@ -32,8 +32,8 @@ export default  {
   [AdvTechTile.Ship1]: ["a > vp"],
   [AdvTechTile.Ship2]: ["trade > vp"],
   [AdvTechTile.Ship3]: ["4up-0"],
-  [AdvTechTile.Ship4]: ["2ship+4"], // Place two ships, and move them at +4 range
-  [AdvTechTile.Ship5]: ["=> 5vp"],
+  [AdvTechTile.Ship4]: ["booster-tech"], // gain immediately the booster on the tech tile, will have 2 boosters for the rest of the game
+  [AdvTechTile.Ship5]: ["=> 5vp,o"],
   [AdvTechTile.Ship6]: ["=> q,o,2turn"],
 };
 

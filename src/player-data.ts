@@ -11,6 +11,7 @@ const MAX_CREDIT = 30;
 const MAX_KNOWLEDGE = 15;
 const MAX_SHIP = 3;
 const MAX_TRADE_TOKENS = 15;
+const MAX_CULTURE = 60;
 
 export default class PlayerData extends EventEmitter {
   victoryPoints: number = 10;
@@ -23,6 +24,7 @@ export default class PlayerData extends EventEmitter {
   }
   tradeTokens = 0;
   wildTradeTokens = 0;
+  culture = 0;
   power: {
     area1: number,
     area2: number,
@@ -93,7 +95,6 @@ export default class PlayerData extends EventEmitter {
   // when picking rewards
   toPick: {rewards: Reward[], count: number, source: EventSource} = undefined;
 
-
   toJSON(): Object {
     const ret = {
       victoryPoints: this.victoryPoints,
@@ -122,7 +123,8 @@ export default class PlayerData extends EventEmitter {
       tradeTokens: this.tradeTokens,
       wildTradeTokens: this.wildTradeTokens,
       advancedShips: this.advancedShips,
-      autoChargePower: this.autoChargePower
+      autoChargePower: this.autoChargePower,
+      culture: this.culture
     };
 
     return ret;
@@ -210,6 +212,7 @@ export default class PlayerData extends EventEmitter {
       case Resource.TokenArea3: if (count < 0) { this.power.area3 += count; this.power.gaia -= count; } break;
       case Resource.AdvancedSpaceShip: this.advancedShips += count; break;
       case Resource.Turn: this.turns += count; break;
+      case Resource.Culture: this.culture = Math.max(Math.min(MAX_CULTURE, this.culture + count), 0);
 
       default: break; // Not implemented
     }

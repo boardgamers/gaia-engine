@@ -1,8 +1,8 @@
 import SpaceMap, { MapConfiguration } from './map';
-import * as assert from 'assert';
+import assert from 'assert';
 import { sortBy, omit, uniq, sum, set } from 'lodash';
 import Player from './player';
-import * as shuffleSeed from "shuffle-seed";
+import shuffleSeed from "shuffle-seed";
 import {
   Faction,
   Command,
@@ -314,6 +314,10 @@ export default class Engine {
       }
     });
     player.on('pick-rewards', () => this.processNextMove(SubPhase.PickRewards));
+    player.on(`move-preset-ships`, () => {
+      player.resetTemporaryVariables();
+      this.processNextMove(SubPhase.MoveShip);
+    });
 
     /* For advanced log */
     for (const resource of [Resource.VictoryPoint, Resource.ChargePower, Resource.Credit, Resource.Qic, Resource.Knowledge, Resource.Ore, Resource.GainToken]) {
@@ -964,7 +968,7 @@ export default class Engine {
         // gets LostPlanet
         this.processNextMove(SubPhase.PlaceLostPlanet);
       } else if (field === ResearchField.TradingVolume) {
-        pl.gainFederationToken(Federation.Ship);
+        pl.gainFederationToken(Federation.TradeVolume);
       }
     }
   }

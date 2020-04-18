@@ -19,7 +19,7 @@ import federationTiles, { isGreen } from "./tiles/federations";
 import { EventEmitter } from "eventemitter3";
 import { finalScorings } from './tiles/scoring';
 import techs, { isAdvanced } from './tiles/techs';
-import * as assert from "assert";
+import assert from "assert";
 
 const TERRAFORMING_COST = 3;
 // 25 satellites - 2 used on the final scoring board - 1 used in the player order
@@ -727,9 +727,10 @@ export default class Player extends EventEmitter {
       case Condition.Trade: return this.data.tradeTokens + this.data.wildTradeTokens;
       // Max 8 (for tech tile which gains 1k per planet)
       case Condition.PlanetsWithTradeToken: return Math.min(this.data.occupied.filter(hex => hex.isMainOccupier(this.player) && hex.colonizedBy(this.player) && hex.hasTradeTokens()).length, 8);
-      case Condition.AdvanceResearch: return sum(Object.values(this.data.research));
+      // Max 20 (for tech tile which gains 1vp per level)
+      case Condition.ResearchLevels: return Math.min(sum(Object.values(this.data.research)), 20);
       case Condition.HighestResearchLevel: return Math.max(...Object.values(this.data.research));
-      case Condition.Culture: return this.cultureLevel();
+      case Condition.Culture: return this.data.culture;
     }
 
     return 0;
