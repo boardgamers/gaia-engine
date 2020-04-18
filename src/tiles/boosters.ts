@@ -14,5 +14,5 @@ export default {
   [Booster.Ship1]: ["trade >> 3vp", "=>range+1"],
   [Booster.Ship2]: ["+ship", "=>move-all"],
   [Booster.Ship3]: ["+2k", "L | vp"],
-  [Booster.ShipTech]: ["+q", "+5vp"]
+  [Booster.ShipTech]: ["q", "5vp"]
 };
