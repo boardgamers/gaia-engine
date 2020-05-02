@@ -31,6 +31,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.19.2",
     "eventemitter3": "^3.1.0",
     "hexagrid": "^2.0.1",
     "lodash": "^4.17.15",
