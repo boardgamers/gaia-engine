@@ -48,6 +48,12 @@ export function setPlayerMetaData(engine: Engine, player: number, metaData: {nam
 }
 
 export async function move(engine: Engine, move: string, player: number) {
+  if (!move) {
+    // Don't save
+    engine.newTurn = false;
+    return engine;
+  }
+
   if (!(engine instanceof Engine)) {
     engine = Engine.fromData(engine);
   }
