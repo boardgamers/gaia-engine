@@ -9,6 +9,16 @@ export async function init (nbPlayers: number, expansions: string[], options: En
     seed = crypto.randomBytes(8).toString('base64');
   }
 
+  let numberSeed: number;
+  // If the seed is a number, use it directly, otherwise use a number generated from its hash
+  if ('' + parseInt(seed, 10) === seed) {
+    numberSeed = parseInt(seed, 10);
+  } else {
+    const md5sum = crypto.createHash("md5");
+    md5sum.update(seed);
+    numberSeed = ('' + parseInt(seed, 10)) === seed ? parseInt(seed, 10) : parseInt(md5sum.digest("hex").slice(-10), 16);
+  }
+
   if (expansions.includes("spaceships")) {
     options.spaceShips = true;
   }
@@ -16,7 +26,7 @@ export async function init (nbPlayers: number, expansions: string[], options: En
   if (options.balancedGeneration) {
     delete options.balancedGeneration;
 
-    const resp = await axios.post('http://gaia-project.hol.es', {seed, player: this.options.setup.nbPlayers}).then(r => r.data);
+    const resp = await axios.post('http://gaia-project.hol.es', {seed: numberSeed, player: this.options.setup.nbPlayers}).then(r => r.data);
 
     options.map = {sectors: resp.map};
 
@@ -37,21 +47,52 @@ export function setPlayerMetaData(engine: Engine, player: number, metaData: {nam
   return engine;
 }
 
-export function move(engine: Engine, move: string, player: number) {
+export async function move(engine: Engine, move: string, player: number) {
   if (!(engine instanceof Engine)) {
     engine = Engine.fromData(engine);
   }
 
   const round = engine.round;
   engine.move(move);
+  engine.generateAvailableCommandsIfNeeded();
 
-  if (engine.newTurn && engine.round !== round) {
-    (engine as any).messages = [...((engine as any).messages || []), `Round ${round}`];
+  if (engine.newTurn) {
+    afterMove(engine, round);
+
+    automove(engine);
   }
 
-  // todo: automove
-
   return engine;
+}
+
+function afterMove(engine: Engine, oldRound: number) {
+  if (engine.round > oldRound && engine.round > 0) {
+    (engine as any).messages = [...((engine as any).messages || []), `Round ${engine.round}`];
+  }
+}
+
+function automove(engine: Engine) {
+  let modified: boolean;
+  do {
+    modified = false;
+    let oldRound = engine.round;
+
+    while (!cancelled(engine) && !ended(engine) && engine.player(engine.playerToMove).dropped) {
+      engine.autoPass();
+
+      afterMove(engine, oldRound);
+      modified = true;
+      oldRound = engine.round;
+    }
+
+    oldRound = engine.round;
+
+    while (engine.autoChargePower()) {
+      afterMove(engine, oldRound);
+      modified = true;
+      oldRound = engine.round;
+    }
+  } while (modified);
 }
 
 export function ended (engine: Engine) {
@@ -66,10 +107,16 @@ export function scores (engine: Engine) {
   return engine.players.map(pl => pl.data.victoryPoints);
 }
 
-export function dropPlayer (engine: Engine, player: number) {
+export async function dropPlayer (engine: Engine, player: number) {
+  engine = engine instanceof Engine ? engine : Engine.fromData(engine);
+
   engine.players[player].dropped = true;
 
-  // TODO: automove
+  if (engine.round <= 0) {
+    engine.ended = true;
+  } else {
+    automove(engine);
+  }
 
   return engine;
 }

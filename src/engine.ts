@@ -855,6 +855,11 @@ export default class Engine {
     return this.phase === Phase.EndGame;
   }
 
+  set ended(val: boolean) {
+    assert(val, "You can't set ended to false");
+    this.phase = Phase.EndGame;
+  }
+
   get isLastRound() {
     return this.round === Round.LastRound;
   }
