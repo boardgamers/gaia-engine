@@ -19,7 +19,7 @@ import federationTiles, { isGreen } from "./tiles/federations";
 import { EventEmitter } from "eventemitter3";
 import { finalScorings } from './tiles/scoring';
 import techs, { isAdvanced } from './tiles/techs';
-import * as assert from "assert";
+import assert from "assert";
 
 const TERRAFORMING_COST = 3;
 // 25 satellites - 2 used on the final scoring board - 1 used in the player order

@@ -1,8 +1,8 @@
 import SpaceMap, { MapConfiguration } from './map';
-import * as assert from 'assert';
+import assert from 'assert';
 import { sortBy, omit, uniq, sum, set } from 'lodash';
 import Player from './player';
-import * as shuffleSeed from "shuffle-seed";
+import shuffleSeed from "shuffle-seed";
 import {
   Faction,
   Command,
