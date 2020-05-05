@@ -38,7 +38,10 @@ export async function init (nbPlayers: number, expansions: string[], options: En
     }
   }
 
-  return new Engine([`init ${nbPlayers} ${seed}`], options);
+  const engine = new Engine([`init ${nbPlayers} ${seed}`], options);
+  engine.generateAvailableCommandsIfNeeded();
+
+  return engine;
 }
 
 export function setPlayerMetaData(engine: Engine, player: number, metaData: {name: string}) {
