@@ -116,6 +116,10 @@ export function scores (engine: Engine) {
   return engine.players.map(pl => pl.data.victoryPoints);
 }
 
+export function factions (engine: Engine) {
+  return engine.players.map(pl => pl.faction);
+}
+
 export async function dropPlayer (engine: Engine, player: number) {
   engine = engine instanceof Engine ? engine : Engine.fromData(engine);
 
