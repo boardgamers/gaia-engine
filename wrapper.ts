@@ -144,6 +144,6 @@ export function messages (engine: Engine) {
 
   return {
     messages,
-    engine
+    data: engine
   };
 }
