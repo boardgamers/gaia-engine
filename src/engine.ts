@@ -440,20 +440,21 @@ export default class Engine {
     const offers = cmd.data.offers;
 
     const pl = this.player(this.playerToMove);
-    const power = Reward.parse(offers[0].offer)[0].count;
+    const offer = offers[0].offer;
+    const power = Reward.parse(offer)[0].count;
 
     // A passed player in last round should always decline a leech if there's a VP
     // cost associated with it.
     // If this not true, please add an example (or link to) in the comments
     if (this.isLastRound && this.passedPlayers.includes(pl.player)) {
       if (!offers.some(offer => offer.cost === '~')) {
-        this.move(`${pl.faction} ${Command.Decline} ${power}`, false);
+        this.move(`${pl.faction} ${Command.Decline} ${offer}`, false);
         return true;
       }
     }
 
     // Only leech when only one option and cost is nothing
-    if (offers.length > 1 || power > (pl.data.autoChargePower ?? 1) ) {
+    if (offers.length > 1 || power > (pl.data.autoChargePower || 1) ) {
       return false;
     }
 
@@ -463,7 +464,7 @@ export default class Engine {
     }
 
     try {
-      this.move(`${pl.faction} ${Command.ChargePower} ${power}`, false);
+      this.move(`${pl.faction} ${Command.ChargePower} ${offer}`, false);
       return true;
     } catch (err) {
       /* Restore player data to what it was, like if the taklons cause an incomplete move error requiring brainstone destination */
