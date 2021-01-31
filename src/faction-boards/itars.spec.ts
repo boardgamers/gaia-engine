@@ -37,7 +37,7 @@ describe('Itars', () => {
     expect (() => new Engine(moves)).to.not.throw();
   });
 
-  it("auto-charge", () => {
+  it("should autocharge when no power tokens are going to be put in area3", () => {
     let engine = new Engine();
     expect(engine.autoChargeItars(2, 2)).to.be.true;
     expect(engine.autoChargeItars(1, 2)).to.be.false;
