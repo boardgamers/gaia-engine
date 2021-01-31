@@ -36,4 +36,11 @@ describe('Itars', () => {
 
     expect (() => new Engine(moves)).to.not.throw();
   });
+
+  it("auto-charge", () => {
+    let engine = new Engine();
+    expect(engine.autoChargeItars(2, 2)).to.be.true;
+    expect(engine.autoChargeItars(1, 2)).to.be.false;
+    expect(engine.autoChargeItars(0, 1)).to.be.false;
+  });
 });
