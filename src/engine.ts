@@ -454,7 +454,7 @@ export default class Engine {
     }
 
     // Only leech when only one option and cost is nothing
-    if (offers.length > 1 || power > (pl.data.autoChargePower || 1) ) {
+    if (offers.length > 1 || power > (pl.data.autoChargePower ?? 1) ) {
       return false;
     }
 
