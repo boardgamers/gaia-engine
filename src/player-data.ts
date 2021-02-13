@@ -41,6 +41,11 @@ export default class PlayerData extends EventEmitter {
   } = fromPairs(Object.values(Building).map((bld) => [bld, 0])) as any;
 
   satellites = 0;
+
+  get effectiveSatellites() {
+    return this.satellites + this.buildings[Building.SpaceStation];
+  }
+
   research: {
     [key in ResearchField]: number;
   } = {

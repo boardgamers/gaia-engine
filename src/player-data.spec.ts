@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import "mocha";
 import PlayerData from "./player-data";
-import { Resource, BrainstoneArea } from "./enums";
+import { Resource, BrainstoneArea, Building } from "./enums";
 
 describe("PlayerData", () => {
   it("should export to JSON", () => {
@@ -69,6 +69,21 @@ describe("PlayerData", () => {
       expect(data.power.area3).to.equal(2);
       expect(data.brainstone).to.equal(BrainstoneArea.Area3);
       expect(charged).to.equal(5);
+    });
+  });
+
+  describe("counting satellites", () => {
+    it("should return the amount of satellites for non-Ivits factions", () => {
+      const data = new PlayerData();
+      data.satellites = 4;
+      expect(data.effectiveSatellites).to.equal(4);
+    });
+
+    it("should count the Ivits' space stations", () => {
+      const data = new PlayerData();
+      data.satellites = 4;
+      data.buildings[Building.SpaceStation] = 6;
+      expect(data.effectiveSatellites).to.equal(10);
     });
   });
 });

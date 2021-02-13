@@ -802,7 +802,7 @@ export default class Player extends EventEmitter {
           (hex) => hex.colonizedBy(this.player) && hex.belongsToFederationOf(this.player)
         ).length;
       case Condition.Satellite:
-        return this.data.satellites + this.data.buildings[Building.SpaceStation];
+        return this.data.effectiveSatellites;
       case Condition.StructureValue:
         return sum(this.data.occupied.map((hex) => this.buildingValue(hex, { federation: true })));
       case Condition.StructureFedValue:
