@@ -35,6 +35,7 @@ import Reward from "./reward";
 import { boardActions } from "./actions";
 import { stdBuildingValue } from "./buildings";
 import { isAdvanced } from "./tiles/techs";
+import { ChargeDecision, ChargeRequest, decideChargeRequest } from "./auto-charge";
 
 // const ISOLATED_DISTANCE = 3;
 const LEECHING_DISTANCE = 2;
@@ -445,52 +446,33 @@ export default class Engine {
     }
 
     const offers = cmd.data.offers;
-
     const pl = this.player(this.playerToMove);
     const offer = offers[0].offer;
     const power = Reward.parse(offer)[0].count;
+    const playerHasPassed = this.passedPlayers.includes(pl.player);
+    const request = new ChargeRequest(pl, offers, power, this.isLastRound, playerHasPassed, pl.getIncomeSelection());
 
-    if (this.shouldDeclineCharge(pl, offers)) {
-      this.move(`${pl.faction} ${Command.Decline} ${offer}`, false);
-      return true;
+    const chargeDecision = decideChargeRequest(request);
+    switch (chargeDecision) {
+      case ChargeDecision.Yes:
+        try {
+          this.move(`${pl.faction} ${Command.ChargePower} ${offer}`, false);
+          return true;
+        } catch (err) {
+          /* Restore player data to what it was, like if the taklons cause an incomplete move error requiring brainstone destination */
+          // pl.loadPlayerData(jsonData);
+          this.generateAvailableCommands();
+          return false;
+        }
+      case ChargeDecision.No:
+        this.move(`${pl.faction} ${Command.Decline} ${offer}`, false);
+        return true;
+      case ChargeDecision.Ask:
+        return false;
+      case ChargeDecision.Undecided:
+        assert(`no decision was reached: ${request}`);
+        break;
     }
-
-    // Only leech when only one option and cost is nothing
-    if (offers.length > 1 || power > (pl.settings.autoChargePower ?? 1)) {
-      return false;
-    }
-
-    // Itars may want to burn power instead, but we can safely move to area2
-    if (pl.faction === Faction.Itars && !this.autoChargeItars(pl.data.power.area1, power) && !this.isLastRound) {
-      return false;
-    }
-
-    try {
-      this.move(`${pl.faction} ${Command.ChargePower} ${offer}`, false);
-      return true;
-    } catch (err) {
-      /* Restore player data to what it was, like if the taklons cause an incomplete move error requiring brainstone destination */
-      // pl.loadPlayerData(jsonData);
-      this.generateAvailableCommands();
-      return false;
-    }
-  }
-
-  // A passed player should always decline a leech if there's a VP cost associated with it -
-  // if it's either the last round or if the income phase would already move all tokens to area3.
-  // If this not true, please add an example (or link to) in the comments
-  private shouldDeclineCharge(pl: Player, offers) {
-    if (this.passedPlayers.includes(pl.player)) {
-      if (offers.every((offer) => offer.cost !== "~")) {
-        //all offers cost something
-        return this.isLastRound || pl.getIncomeSelection().remainingChargesAfterIncome <= 0;
-      }
-    }
-    return false;
-  }
-
-  autoChargeItars(area1: number, power: number) {
-    return area1 >= power;
   }
 
   static fromData(data: any) {
