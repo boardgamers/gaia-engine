@@ -55,9 +55,19 @@ export function setPlayerMetaData(engine: Engine, player: number, metaData: { na
   return engine;
 }
 
-export function setPlayerSettings(engine: Engine, player: number, settings: { autoCharge?: string }) {
+export function setPlayerSettings(
+  engine: Engine,
+  player: number,
+  settings: {
+    autoCharge?: string;
+    autoIncome?: string;
+  }
+) {
   if ("autoCharge" in settings) {
     set(engine.players[player], "settings.autoChargePower", Number(settings.autoCharge));
+  }
+  if ("autoIncome" in settings) {
+    set(engine.players[player], "settings.autoIncome", Boolean(settings.autoIncome));
   }
 
   return engine;
@@ -66,6 +76,7 @@ export function setPlayerSettings(engine: Engine, player: number, settings: { au
 export function playerSettings(engine: Engine, player: number) {
   return {
     autoCharge: String(engine.players[player].settings?.autoChargePower ?? 1),
+    autoIncome: String(engine.players[player].settings?.autoIncome),
   };
 }
 

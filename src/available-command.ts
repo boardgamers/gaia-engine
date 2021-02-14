@@ -603,13 +603,13 @@ export function possibleIncomes(engine: Engine, player: Player) {
   const commands = [];
   const pl = engine.player(player);
 
-  const s = pl.needIncomeSelection();
+  const s = pl.getIncomeSelection();
 
-  if (s.needed) {
+  if (s.needsManualSelection) {
     commands.push({
       name: Command.ChooseIncome,
       player,
-      data: s.descs,
+      data: s.descriptions,
     });
   }
   return commands;

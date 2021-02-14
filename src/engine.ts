@@ -483,7 +483,7 @@ export default class Engine {
     if (this.passedPlayers.includes(pl.player)) {
       if (offers.every((offer) => offer.cost !== "~")) {
         //all offers cost something
-        return this.isLastRound || pl.needIncomeSelection().canFullyChargeDuringIncomePhase;
+        return this.isLastRound || pl.getIncomeSelection().remainingChargesAfterIncome <= 0;
       }
     }
     return false;
@@ -724,11 +724,12 @@ export default class Engine {
    * Pauses if an action is needed from the player.
    */
   handleNextIncome() {
-    if (this.player(this.currentPlayer).needIncomeSelection().needed) {
+    const incomeSelection = this.player(this.currentPlayer).getIncomeSelection();
+    if (incomeSelection.needsManualSelection) {
       return false;
     }
 
-    this.player(this.currentPlayer).receiveIncome();
+    this.player(this.currentPlayer).receiveIncome(incomeSelection.autoplayEvents());
 
     if (!this.moveToNextPlayer(this.tempTurnOrder, { loop: false })) {
       this.endIncomePhase();

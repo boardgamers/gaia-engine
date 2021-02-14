@@ -287,7 +287,7 @@ export default class PlayerData extends EventEmitter {
 
   /**
    * Move power tokens from a power area to an upper one, depending on the amount
-   * of power chaged
+   * of power charged
    *
    * @param power Power charged
    */
