@@ -61,6 +61,7 @@ export function setPlayerSettings(
   settings: {
     autoCharge?: string;
     autoIncome?: string;
+    itarsAutoChargeToArea3?: string;
   }
 ) {
   if ("autoCharge" in settings) {
@@ -68,6 +69,9 @@ export function setPlayerSettings(
   }
   if ("autoIncome" in settings) {
     set(engine.players[player], "settings.autoIncome", Boolean(settings.autoIncome));
+  }
+  if ("itarsAutoChargeToArea3" in settings) {
+    set(engine.players[player], "settings.itarsAutoChargeToArea3", Boolean(settings.autoIncome));
   }
 
   return engine;

@@ -51,17 +51,19 @@ interface FederationCache {
   custom: boolean;
 }
 
+export class Settings {
+  constructor(
+    public autoChargePower: number = 1,
+    public autoIncome: boolean = false,
+    public itarsAutoChargeToArea3: boolean = false
+  ) {}
+}
+
 export default class Player extends EventEmitter {
   faction: Faction = null;
   board: FactionBoard = null;
   data: PlayerData = new PlayerData();
-  settings: {
-    autoChargePower: number;
-    autoIncome: boolean;
-  } = {
-    autoChargePower: 1,
-    autoIncome: false,
-  };
+  settings: Settings = new Settings();
   events: { [key in Operator]: Event[] } = {
     [Operator.Once]: [],
     [Operator.Income]: [],
@@ -537,7 +539,7 @@ export default class Player extends EventEmitter {
   }
 
   getIncomeSelection(): IncomeSelection {
-    return IncomeSelection.create(this.data, this.settings.autoIncome, this.events[Operator.Income]);
+    return IncomeSelection.create(this.data, this.settings, this.events[Operator.Income]);
   }
 
   canGaiaTerrans(): boolean {

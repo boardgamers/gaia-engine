@@ -83,7 +83,12 @@ function askBasedOnCost(r: ChargeRequest): ChargeDecision {
 
 function askForItars(r: ChargeRequest): ChargeDecision {
   // Itars may want to burn power instead, but we can safely move to area2
-  if (r.player.faction === Faction.Itars && !autoChargeItars(r.player.data.power.area1, r.power) && !this.isLastRound) {
+  if (
+    r.player.faction === Faction.Itars &&
+    !r.player.settings.itarsAutoChargeToArea3 &&
+    !autoChargeItars(r.player.data.power.area1, r.power) &&
+    !this.isLastRound
+  ) {
     return ChargeDecision.Ask;
   }
   return ChargeDecision.Undecided;

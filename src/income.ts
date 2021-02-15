@@ -2,6 +2,7 @@ import Event from "./events";
 import PlayerData from "./player-data";
 import Reward from "./reward";
 import { Resource } from "./enums";
+import { Settings } from "./player";
 
 export class IncomeSelection {
   private constructor(
@@ -11,7 +12,7 @@ export class IncomeSelection {
     readonly remainingChargesAfterIncome: number
   ) {}
 
-  static create(data: PlayerData, autoIncome: boolean, events: Event[]): IncomeSelection {
+  static create(data: PlayerData, settings: Settings, events: Event[]): IncomeSelection {
     // we need to check if rewards contains Resource.GainToken and Resource.GainPower
     // player has to select the order
     const notActivated = events.filter((ev) => !ev.activated);
@@ -19,12 +20,12 @@ export class IncomeSelection {
     const gainTokens = notActivated.filter((ev) => ev.rewards.some((rw) => rw.type === Resource.GainToken));
     const chargePowers = notActivated.filter((ev) => ev.rewards.some((rw) => rw.type === Resource.ChargePower));
 
-    const auto = gainTokens.length === 0 || chargePowers.length === 0 || autoIncome;
+    const auto = gainTokens.length === 0 || chargePowers.length === 0 || settings.autoIncome;
 
     return new IncomeSelection(
       !auto,
       () => {
-        if (autoIncome) {
+        if (settings.autoIncome) {
           return calculateAutoIncome(data.clone(), gainTokens, chargePowers);
         } else if (auto) {
           return events;
