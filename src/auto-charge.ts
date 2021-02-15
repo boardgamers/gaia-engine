@@ -1,12 +1,5 @@
-//todo
-//array of charge rules ((Player) -> ChargeDecision)
-//ChargeDecision = (Charge, Decline, Ask, Undecided)
-//if some charges would be wasted during income phase -> ask
-//if all are undecided, ask
-
 import Player from "./player";
 import { IncomeSelection } from "./income";
-import assert from "assert";
 import { Faction } from "./enums";
 
 export enum ChargeDecision {
@@ -30,11 +23,9 @@ export class ChargeRequest {
 const chargeRules: ((ChargeRequest) => ChargeDecision)[] = [
   askOrDeclineForPassedPlayer,
   askForMultipleOffers,
-  askOrDeclineBasedOnCost,
+  (r: ChargeRequest) => askOrDeclineBasedOnCost(r.power, r.player.settings.autoChargePower),
   askForItars,
-  () => {
-    return ChargeDecision.Yes;
-  },
+  () => ChargeDecision.Yes,
 ];
 
 export function decideChargeRequest(r: ChargeRequest): ChargeDecision {
@@ -51,11 +42,9 @@ export function decideChargeRequest(r: ChargeRequest): ChargeDecision {
 // if it's either the last round or if the income phase would already move all tokens to area3.
 // If this not true, please add an example (or link to) in the comments
 function askOrDeclineForPassedPlayer(r: ChargeRequest): ChargeDecision {
-  function noOfferIsFree() {
-    return r.offers.every((offer) => offer.cost !== "~");
-  }
+  const noOfferIsFree = r.offers.every((offer) => offer.cost !== "~");
 
-  if (r.playerHasPassed && noOfferIsFree()) {
+  if (r.playerHasPassed && noOfferIsFree) {
     const remaining = r.incomeSelection.remainingChargesAfterIncome;
     if (r.isLastRound) {
       return ChargeDecision.No;
@@ -77,12 +66,16 @@ function askForMultipleOffers(r: ChargeRequest): ChargeDecision {
   return ChargeDecision.Undecided;
 }
 
-function askOrDeclineBasedOnCost(r: ChargeRequest): ChargeDecision {
-  const autoChargePower = r.player.settings.autoChargePower;
-  if (r.power > autoChargePower) {
-    if (autoChargePower == 0) {
+export function askOrDeclineBasedOnCost(power: number, autoChargePower: number) {
+  if (autoChargePower == 0) {
+    // 0 means we decline if it's not free
+    if (power > 1) {
       return ChargeDecision.No;
     }
+    return ChargeDecision.Undecided;
+  }
+
+  if (power > autoChargePower) {
     return ChargeDecision.Ask;
   }
   return ChargeDecision.Undecided;
