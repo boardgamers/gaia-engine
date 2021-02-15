@@ -86,7 +86,7 @@ export function combinations<T>(t: T[]): T[][] {
 
 function applyGainTokens(data: PlayerData, gainTokens: Event[]) {
   for (const e of gainTokens) {
-    data.gainRewards(e.rewards, true, null);
+    data.gainRewards(e.rewards);
   }
 }
 

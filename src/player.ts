@@ -55,6 +55,7 @@ export class Settings {
   constructor(
     public autoChargePower: number = 1, // 0 => decline everything that is not free
     public autoIncome: boolean = false,
+    public autoBrainstone: boolean = false,
     public itarsAutoChargeToArea3: boolean = false
   ) {}
 }
@@ -188,7 +189,7 @@ export default class Player extends EventEmitter {
     } else {
       this.data.gainRewards(
         rewards.map((rew) => this.factionReward(rew)),
-        false,
+        this.settings.autoBrainstone,
         source
       );
     }

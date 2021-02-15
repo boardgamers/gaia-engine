@@ -61,6 +61,7 @@ export function setPlayerSettings(
   settings: {
     autoCharge?: string;
     autoIncome?: string;
+    autoBrainstone?: string;
     itarsAutoChargeToArea3?: string;
   }
 ) {
@@ -70,8 +71,13 @@ export function setPlayerSettings(
   if ("autoIncome" in settings) {
     set(engine.players[player], "settings.autoIncome", Boolean(settings.autoIncome));
   }
+  if ("autoBrainstone" in settings) {
+    const value = Boolean(settings.autoBrainstone);
+    set(engine.players[player], "settings.autoBrainstone", value);
+    set(engine.players[player], "data.followBrainStoneHeuristics", value);
+  }
   if ("itarsAutoChargeToArea3" in settings) {
-    set(engine.players[player], "settings.itarsAutoChargeToArea3", Boolean(settings.autoIncome));
+    set(engine.players[player], "settings.itarsAutoChargeToArea3", Boolean(settings.itarsAutoChargeToArea3));
   }
 
   return engine;
@@ -81,6 +87,8 @@ export function playerSettings(engine: Engine, player: number) {
   return {
     autoCharge: String(engine.players[player].settings?.autoChargePower ?? 1),
     autoIncome: String(engine.players[player].settings?.autoIncome),
+    autoBrainstone: String(engine.players[player].settings?.autoBrainstone),
+    itarsAutoChargeToArea3: String(engine.players[player].settings?.itarsAutoChargeToArea3),
   };
 }
 

@@ -51,8 +51,11 @@ export function decideChargeRequest(r: ChargeRequest): ChargeDecision {
 // if it's either the last round or if the income phase would already move all tokens to area3.
 // If this not true, please add an example (or link to) in the comments
 function askOrDeclineForPassedPlayer(r: ChargeRequest): ChargeDecision {
-  if (r.playerHasPassed && r.offers.every((offer) => offer.cost !== "~")) {
-    //all offers cost something
+  function noOfferIsFree() {
+    return r.offers.every((offer) => offer.cost !== "~");
+  }
+
+  if (r.playerHasPassed && noOfferIsFree()) {
     const remaining = r.incomeSelection.remainingChargesAfterIncome;
     if (r.isLastRound) {
       return ChargeDecision.No;
