@@ -30,7 +30,7 @@ export class ChargeRequest {
 const chargeRules: ((ChargeRequest) => ChargeDecision)[] = [
   askOrDeclineForPassedPlayer,
   askForMultipleOffers,
-  askBasedOnCost,
+  askOrDeclineBasedOnCost,
   askForItars,
   () => {
     return ChargeDecision.Yes;
@@ -74,8 +74,12 @@ function askForMultipleOffers(r: ChargeRequest): ChargeDecision {
   return ChargeDecision.Undecided;
 }
 
-function askBasedOnCost(r: ChargeRequest): ChargeDecision {
-  if (r.power > (r.player.settings.autoChargePower ?? 1)) {
+function askOrDeclineBasedOnCost(r: ChargeRequest): ChargeDecision {
+  const autoChargePower = r.player.settings.autoChargePower;
+  if (r.power > autoChargePower) {
+    if (autoChargePower == 0) {
+      return ChargeDecision.No;
+    }
     return ChargeDecision.Ask;
   }
   return ChargeDecision.Undecided;

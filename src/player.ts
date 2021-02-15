@@ -53,7 +53,7 @@ interface FederationCache {
 
 export class Settings {
   constructor(
-    public autoChargePower: number = 1,
+    public autoChargePower: number = 1, // 0 => decline everything that is not free
     public autoIncome: boolean = false,
     public itarsAutoChargeToArea3: boolean = false
   ) {}
