@@ -1,32 +1,37 @@
 import {
-  Command,
-  Faction,
-  Building,
-  Planet,
-  Booster,
-  Resource,
-  Player,
-  Operator,
-  BoardAction,
-  ResearchField,
-  TechTilePos,
   AdvTechTilePos,
-  Phase,
-  SubPhase,
+  BoardAction,
+  Booster,
+  Building,
+  Command,
   Expansion,
+  Faction,
+  Operator,
+  Phase,
+  Planet,
+  Player,
+  ResearchField,
+  Resource,
+  SubPhase,
+  TechTilePos,
 } from "./enums";
 import Engine from "./engine";
-import { range, difference } from "lodash";
+import { Settings } from "./player";
+import { difference, range } from "lodash";
 import factions from "./factions";
 import { upgradedBuildings } from "./buildings";
 import Reward from "./reward";
-import { boardActions, freeActions, freeActionsTerrans, freeActionsItars } from "./actions";
+import { boardActions, freeActions, freeActionsItars, freeActionsTerrans } from "./actions";
 import * as researchTracks from "./research-tracks";
 import { isAdvanced } from "./tiles/techs";
 
 const ISOLATED_DISTANCE = 3;
 const UPGRADE_RESEARCH_COST = "4k";
 const QIC_RANGE_UPGRADE = 2;
+
+export class Offer {
+  constructor(readonly offer: string, readonly cost: string) {}
+}
 
 interface AvailableCommand {
   name: Command;
@@ -389,7 +394,7 @@ export function possibleFreeActions(engine: Engine, player: Player) {
       commands.push({
         name: Command.Decline,
         player,
-        data: { offers: [{ offer: Resource.TechTile, cost: new Reward(4, Resource.GainTokenGaiaArea).toString() }] },
+        data: { offers: [new Offer(Resource.TechTile, new Reward(4, Resource.GainTokenGaiaArea).toString())] },
       });
     }
 
@@ -503,7 +508,7 @@ export function possibleResearchAreas(engine: Engine, player: Player, cost?: str
     commands.push({
       name: Command.Decline,
       player,
-      data: { offers: [{ offer: Command.UpgradeResearch }] },
+      data: { offers: [new Offer(Command.UpgradeResearch, null)] },
     });
   }
   return commands;
@@ -632,24 +637,17 @@ export function possibleLeech(engine: Engine, player: Player) {
   if (pl.data.leechPossible > 0) {
     const extraPower = pl.faction === Faction.Taklons && pl.data.hasPlanetaryInstitute();
     const maxLeech = pl.maxLeech();
-    const offers: Array<{ offer: string; cost: string }> = [];
+    const offers: Offer[] = [];
 
     if (extraPower) {
-      offers.push(
-        {
-          offer: `${maxLeech}${Resource.ChargePower},1t`,
-          cost: new Reward(Math.max(maxLeech - 1, 0), Resource.VictoryPoint).toString(),
-        },
-        {
-          offer: `1t,${pl.maxLeech(true)}${Resource.ChargePower}`,
-          cost: new Reward(Math.max(pl.maxLeech(true) - 1, 0), Resource.VictoryPoint).toString(),
-        }
-      );
+      offers.push(...getTaklonsExtraLeechOffers(maxLeech, pl.maxLeech(true), pl.settings));
     } else {
-      offers.push({
-        offer: `${maxLeech}${Resource.ChargePower}`,
-        cost: new Reward(Math.max(maxLeech - 1, 0), Resource.VictoryPoint).toString(),
-      });
+      offers.push(
+        new Offer(
+          `${maxLeech}${Resource.ChargePower}`,
+          new Reward(Math.max(maxLeech - 1, 0), Resource.VictoryPoint).toString()
+        )
+      );
     }
 
     [Command.ChargePower, Command.Decline].map((name) =>
@@ -669,6 +667,31 @@ export function possibleLeech(engine: Engine, player: Player) {
   }
 
   return commands;
+}
+
+export function getTaklonsExtraLeechOffers(
+  earlyLeechValue: number,
+  lateLeechValue: number,
+  settings: Settings
+): Offer[] {
+  const earlyLeech = new Offer(
+    `${earlyLeechValue}${Resource.ChargePower},1t`,
+    new Reward(Math.max(earlyLeechValue - 1, 0), Resource.VictoryPoint).toString()
+  );
+  const lateLeech = new Offer(
+    `1t,${lateLeechValue}${Resource.ChargePower}`,
+    new Reward(Math.max(lateLeechValue - 1, 0), Resource.VictoryPoint).toString()
+  );
+
+  if (settings.autoBrainstone) {
+    //leech as much as possible, but avoid waste
+    if (lateLeechValue > earlyLeechValue) {
+      return [lateLeech];
+    }
+    return [earlyLeech];
+  }
+
+  return [earlyLeech, lateLeech];
 }
 
 export function possibleCoverTechTiles(engine: Engine, player: Player) {

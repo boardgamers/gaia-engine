@@ -26,7 +26,7 @@ export class IncomeSelection {
       !auto,
       () => {
         if (settings.autoIncome) {
-          return calculateAutoIncome(data.clone(), gainTokens, chargePowers);
+          return calculateAutoIncome(data, gainTokens, chargePowers);
         } else if (auto) {
           return events;
         }
@@ -54,14 +54,18 @@ function remainingChargesAfterIncome(data: PlayerData, gainTokens: Event[], char
   return 100 - applyChargePowers(data, Event.parse(["+100pw"], null));
 }
 
-function calculateAutoIncome(data: PlayerData, gainTokens: Event[], chargePowers: Event[]): Event[] {
-  const possibleSequences = combinations(gainTokens).map((beforeCharge) => {
-    applyGainTokens(data, beforeCharge);
-    const waste = applyChargePowers(data, chargePowers);
-    const gainAfterCharge = gainTokens.filter((event) => !beforeCharge.includes(event));
-    applyGainTokens(data, gainAfterCharge);
-    return { waste: waste, power: data.power, events: beforeCharge.concat(chargePowers).concat(gainAfterCharge) };
-  });
+function runIncomeSimulation(data: PlayerData, beforeCharge: Event[], chargePowers: Event[], gainTokens: Event[]) {
+  applyGainTokens(data, beforeCharge);
+  const waste = applyChargePowers(data, chargePowers);
+  const gainAfterCharge = gainTokens.filter((event) => !beforeCharge.includes(event));
+  applyGainTokens(data, gainAfterCharge);
+  return { waste: waste, power: data.power, events: beforeCharge.concat(chargePowers).concat(gainAfterCharge) };
+}
+
+export function calculateAutoIncome(data: PlayerData, gainTokens: Event[], chargePowers: Event[]): Event[] {
+  const possibleSequences = combinations(gainTokens).map((beforeCharge) =>
+    runIncomeSimulation(data.clone(), beforeCharge, chargePowers, gainTokens)
+  );
 
   let minWaste = Infinity;
   for (const s of possibleSequences) {

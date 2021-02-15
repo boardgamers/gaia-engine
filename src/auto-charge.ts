@@ -1,6 +1,7 @@
 import Player from "./player";
 import { IncomeSelection } from "./income";
 import { Faction } from "./enums";
+import { Offer } from "./available-command";
 
 export enum ChargeDecision {
   Yes,
@@ -12,7 +13,7 @@ export enum ChargeDecision {
 export class ChargeRequest {
   constructor(
     public readonly player: Player,
-    public readonly offers: any,
+    public readonly offers: Offer[],
     public readonly power: number,
     public readonly isLastRound: boolean,
     public readonly playerHasPassed: boolean,
@@ -22,7 +23,7 @@ export class ChargeRequest {
 
 const chargeRules: ((ChargeRequest) => ChargeDecision)[] = [
   askOrDeclineForPassedPlayer,
-  askForMultipleOffers,
+  askForMultipleTaklonsOffers,
   (r: ChargeRequest) => askOrDeclineBasedOnCost(r.power, r.player.settings.autoChargePower),
   askForItars,
   () => ChargeDecision.Yes,
@@ -59,7 +60,8 @@ function askOrDeclineForPassedPlayer(r: ChargeRequest): ChargeDecision {
   return ChargeDecision.Undecided;
 }
 
-function askForMultipleOffers(r: ChargeRequest): ChargeDecision {
+function askForMultipleTaklonsOffers(r: ChargeRequest): ChargeDecision {
+  // if autoBrainstone is, we won't have multiple offers here, as the best offer is selected already
   if (r.offers.length > 1) {
     return ChargeDecision.Ask;
   }
