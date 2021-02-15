@@ -72,9 +72,7 @@ export function setPlayerSettings(
     set(engine.players[player], "settings.autoIncome", Boolean(settings.autoIncome));
   }
   if ("autoBrainstone" in settings) {
-    const value = Boolean(settings.autoBrainstone);
-    set(engine.players[player], "settings.autoBrainstone", value);
-    set(engine.players[player], "data.followBrainStoneHeuristics", value);
+    set(engine.players[player], "settings.autoBrainstone", Boolean(settings.autoBrainstone));
   }
   if ("itarsAutoChargeToArea3" in settings) {
     set(engine.players[player], "settings.itarsAutoChargeToArea3", Boolean(settings.itarsAutoChargeToArea3));
