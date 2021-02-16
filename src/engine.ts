@@ -1,34 +1,34 @@
 import SpaceMap, { MapConfiguration } from "./map";
 import assert from "assert";
-import { sortBy, uniq, sum, set, range, isEqual } from "lodash";
+import { isEqual, range, set, sortBy, sum, uniq } from "lodash";
 import Player from "./player";
 import shuffleSeed from "shuffle-seed";
 import {
-  Faction,
-  Command,
-  Player as PlayerEnum,
-  Building,
-  ResearchField,
-  Planet,
-  Round,
-  Booster,
-  Resource,
-  TechTile,
-  TechTilePos,
   AdvTechTile,
   AdvTechTilePos,
-  Federation,
   BoardAction,
-  Operator,
-  ScoringTile,
-  FinalTile,
-  Phase,
-  SubPhase,
+  Booster,
+  Building,
+  Command,
   Expansion,
+  Faction,
+  Federation,
+  FinalTile,
+  Operator,
+  Phase,
+  Planet,
+  Player as PlayerEnum,
+  ResearchField,
+  Resource,
+  Round,
+  ScoringTile,
+  SubPhase,
+  TechTile,
+  TechTilePos,
 } from "./enums";
 import Event, { EventSource, RoundScoring } from "./events";
 import federations from "./tiles/federations";
-import { roundScorings, finalScorings } from "./tiles/scoring";
+import { finalScorings, roundScorings } from "./tiles/scoring";
 import * as researchTracks from "./research-tracks";
 import AvailableCommand, { generate as generateAvailableCommands } from "./available-command";
 import Reward from "./reward";
@@ -447,16 +447,16 @@ export default class Engine {
 
     const offers = cmd.data.offers;
     const pl = this.player(this.playerToMove);
-    const offer = offers[0].offer;
-    const power = Reward.parse(offer)[0].count;
     const playerHasPassed = this.passedPlayers.includes(pl.player);
-    const request = new ChargeRequest(pl, offers, power, this.isLastRound, playerHasPassed, pl.getIncomeSelection());
+    const request = new ChargeRequest(pl, offers, this.isLastRound, playerHasPassed, pl.getIncomeSelection());
 
     const chargeDecision = decideChargeRequest(request);
     switch (chargeDecision) {
       case ChargeDecision.Yes:
         try {
-          this.move(`${pl.faction} ${Command.ChargePower} ${offer}`, false);
+          const offer = request.maxAllowedOffer;
+          assert(offer, `could not find max offer: ${JSON.stringify([offers, pl.settings])}`);
+          this.move(`${pl.faction} ${Command.ChargePower} ${offer.offer}`, false);
           return true;
         } catch (err) {
           /* Restore player data to what it was, like if the taklons cause an incomplete move error requiring brainstone destination */
@@ -465,7 +465,7 @@ export default class Engine {
           return false;
         }
       case ChargeDecision.No:
-        this.move(`${pl.faction} ${Command.Decline} ${offer}`, false);
+        this.move(`${pl.faction} ${Command.Decline} ${offers[0].offer}`, false);
         return true;
       case ChargeDecision.Ask:
         return false;

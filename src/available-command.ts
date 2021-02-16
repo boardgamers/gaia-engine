@@ -640,7 +640,7 @@ export function possibleLeech(engine: Engine, player: Player) {
     const offers: Offer[] = [];
 
     if (extraPower) {
-      offers.push(...getTaklonsExtraLeechOffers(maxLeech, pl.maxLeech(true), pl.settings));
+      offers.push(...getTaklonsExtraLeechOffers(maxLeech, pl.maxLeech(true)));
     } else {
       offers.push(
         new Offer(
@@ -669,11 +669,7 @@ export function possibleLeech(engine: Engine, player: Player) {
   return commands;
 }
 
-export function getTaklonsExtraLeechOffers(
-  earlyLeechValue: number,
-  lateLeechValue: number,
-  settings: Settings
-): Offer[] {
+export function getTaklonsExtraLeechOffers(earlyLeechValue: number, lateLeechValue: number): Offer[] {
   const earlyLeech = new Offer(
     `${earlyLeechValue}${Resource.ChargePower},1t`,
     new Reward(Math.max(earlyLeechValue - 1, 0), Resource.VictoryPoint).toString()
@@ -682,14 +678,6 @@ export function getTaklonsExtraLeechOffers(
     `1t,${lateLeechValue}${Resource.ChargePower}`,
     new Reward(Math.max(lateLeechValue - 1, 0), Resource.VictoryPoint).toString()
   );
-
-  if (settings.autoBrainstone) {
-    //leech as much as possible, but avoid waste
-    if (lateLeechValue > earlyLeechValue) {
-      return [lateLeech];
-    }
-    return [earlyLeech];
-  }
 
   return [earlyLeech, lateLeech];
 }

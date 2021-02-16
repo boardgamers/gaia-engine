@@ -1,7 +1,8 @@
 import Player from "./player";
 import { IncomeSelection } from "./income";
-import { Faction } from "./enums";
+import { Faction, Resource } from "./enums";
 import { Offer } from "./available-command";
+import Reward from "./reward";
 
 export enum ChargeDecision {
   Yes,
@@ -11,20 +12,51 @@ export enum ChargeDecision {
 }
 
 export class ChargeRequest {
+  public readonly minCharge: number;
+  public readonly maxCharge: number;
+  public readonly maxAllowedOffer: Offer;
+
   constructor(
     public readonly player: Player,
     public readonly offers: Offer[],
-    public readonly power: number,
     public readonly isLastRound: boolean,
     public readonly playerHasPassed: boolean,
     public readonly incomeSelection: IncomeSelection
-  ) {}
+  ) {
+    let minCharge = 100;
+    let maxCharge = 0;
+
+    const limit = Math.max(player.settings.autoChargePower, 1);
+    let allowedMax = 0;
+    let maxAllowedOffer: Offer = null;
+
+    for (const offer of this.offers) {
+      for (const reward of Reward.parse(offer.offer)) {
+        if (reward.type == Resource.ChargePower) {
+          const charge = reward.count;
+          if (charge < minCharge) {
+            minCharge = charge;
+          }
+          if (charge > maxCharge) {
+            maxCharge = charge;
+          }
+          if (charge <= limit && charge > allowedMax) {
+            maxAllowedOffer = offer;
+            allowedMax = charge;
+          }
+        }
+      }
+    }
+    this.minCharge = minCharge;
+    this.maxCharge = maxCharge;
+    this.maxAllowedOffer = maxAllowedOffer;
+  }
 }
 
 const chargeRules: ((ChargeRequest) => ChargeDecision)[] = [
   askOrDeclineForPassedPlayer,
-  askForMultipleTaklonsOffers,
-  (r: ChargeRequest) => askOrDeclineBasedOnCost(r.power, r.player.settings.autoChargePower),
+  (r: ChargeRequest) => askForMultipleTaklonsOffers(r.offers, r.player.settings.autoBrainstone),
+  (r: ChargeRequest) => askOrDeclineBasedOnCost(r.minCharge, r.maxCharge, r.player.settings.autoChargePower),
   askForItars,
   () => ChargeDecision.Yes,
 ];
@@ -52,7 +84,7 @@ function askOrDeclineForPassedPlayer(r: ChargeRequest): ChargeDecision {
     } else if (remaining <= 0) {
       //all charges are wasted
       return ChargeDecision.No;
-    } else if (remaining < r.power) {
+    } else if (remaining < r.minCharge) {
       //some charges are wasted
       return ChargeDecision.Ask;
     }
@@ -60,24 +92,27 @@ function askOrDeclineForPassedPlayer(r: ChargeRequest): ChargeDecision {
   return ChargeDecision.Undecided;
 }
 
-function askForMultipleTaklonsOffers(r: ChargeRequest): ChargeDecision {
-  // if autoBrainstone is, we won't have multiple offers here, as the best offer is selected already
-  if (r.offers.length > 1) {
+function askForMultipleTaklonsOffers(offers: Offer[], autoBrainstone: boolean): ChargeDecision {
+  if (offers.length == 2 && autoBrainstone) {
+    //may still decline based on cost
+    return ChargeDecision.Undecided;
+  }
+  if (offers.length > 1) {
     return ChargeDecision.Ask;
   }
   return ChargeDecision.Undecided;
 }
 
-export function askOrDeclineBasedOnCost(power: number, autoChargePower: number) {
+export function askOrDeclineBasedOnCost(minCharge: number, maxCharge: number, autoChargePower: number) {
   if (autoChargePower == 0) {
     // 0 means we decline if it's not free
-    if (power > 1) {
+    if (minCharge > 1) {
       return ChargeDecision.No;
     }
     return ChargeDecision.Undecided;
   }
 
-  if (power > autoChargePower) {
+  if (maxCharge > autoChargePower) {
     return ChargeDecision.Ask;
   }
   return ChargeDecision.Undecided;
@@ -88,7 +123,7 @@ function askForItars(r: ChargeRequest): ChargeDecision {
   if (
     r.player.faction === Faction.Itars &&
     !r.player.settings.itarsAutoChargeToArea3 &&
-    !autoChargeItars(r.player.data.power.area1, r.power) &&
+    !autoChargeItars(r.player.data.power.area1, r.minCharge) &&
     !this.isLastRound
   ) {
     return ChargeDecision.Ask;

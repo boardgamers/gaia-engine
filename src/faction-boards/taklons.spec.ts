@@ -249,39 +249,4 @@ describe("Taklons", () => {
 
     expect(engine.player(Player.Player1).data.power.area1).to.equal(1);
   });
-
-  describe("getTaklonsExtraLeechOffers", () => {
-    const autoBrainstone = new Settings(1, false, true);
-
-    const tests: {
-      name: string;
-      give: { earlyLeechValue: number; lateLeechValue: number; settings: Settings };
-      want: { offers: string[] };
-    }[] = [
-      {
-        name: "manual selection",
-        give: { earlyLeechValue: 2, lateLeechValue: 3, settings: new Settings() },
-        want: { offers: ["2pw,1t", "1t,3pw"] },
-      },
-      {
-        name: "auto selection - late leeches more",
-        give: { earlyLeechValue: 2, lateLeechValue: 3, settings: autoBrainstone },
-        want: { offers: ["1t,3pw"] },
-      },
-      {
-        name: "auto selection - both leech the same",
-        give: { earlyLeechValue: 2, lateLeechValue: 2, settings: autoBrainstone },
-        want: { offers: ["2pw,1t"] },
-      },
-    ];
-
-    for (const test of tests) {
-      it(test.name, () => {
-        const give = test.give;
-        const offers = getTaklonsExtraLeechOffers(give.earlyLeechValue, give.lateLeechValue, give.settings);
-
-        expect(offers.map((o) => o.offer)).to.deep.equal(test.want.offers);
-      });
-    }
-  });
 });

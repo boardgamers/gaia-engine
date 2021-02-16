@@ -1,5 +1,13 @@
 import { expect } from "chai";
-import { askOrDeclineBasedOnCost, autoChargeItars, ChargeDecision } from "./auto-charge";
+import {
+  askOrDeclineBasedOnCost,
+  autoChargeItars,
+  ChargeDecision,
+  ChargeRequest,
+  decideChargeRequest,
+} from "./auto-charge";
+import { getTaklonsExtraLeechOffers } from "./available-command";
+import Player from "./player";
 
 describe("AutoCharge", () => {
   it("should auto-charge when no power tokens are going to be put in area3", () => {
@@ -53,8 +61,65 @@ describe("AutoCharge", () => {
 
     for (const test of tests) {
       it(test.name, () => {
-        const decision = askOrDeclineBasedOnCost(test.give.power, test.give.autoCharge);
+        const decision = askOrDeclineBasedOnCost(test.give.power, test.give.power, test.give.autoCharge);
         expect(decision).to.equal(test.want);
+      });
+    }
+  });
+
+  describe("decideChargeRequest for taklons special leech", () => {
+    const tests: {
+      name: string;
+      give: { earlyLeechValue: number; lateLeechValue: number; autoBrainstone: boolean; autoCharge: number };
+      want: { decision: ChargeDecision; offer: string };
+    }[] = [
+      {
+        name: "manual brainstone",
+        give: { earlyLeechValue: 2, lateLeechValue: 3, autoBrainstone: false, autoCharge: 100 },
+        want: { decision: ChargeDecision.Ask, offer: null },
+      },
+      {
+        name: "auto brainstone - not limited by auto charge - take max leech",
+        give: { earlyLeechValue: 2, lateLeechValue: 3, autoBrainstone: true, autoCharge: 100 },
+        want: { decision: ChargeDecision.Yes, offer: "1t,3pw" },
+      },
+      {
+        name: "auto brainstone - one option leeches more than max - ask",
+        give: { earlyLeechValue: 2, lateLeechValue: 3, autoBrainstone: true, autoCharge: 2 },
+        want: { decision: ChargeDecision.Ask, offer: null },
+      },
+      {
+        name: "auto brainstone - both options leeches more than max - ask",
+        give: { earlyLeechValue: 4, lateLeechValue: 3, autoBrainstone: true, autoCharge: 2 },
+        want: { decision: ChargeDecision.Ask, offer: null },
+      },
+      {
+        name: "auto brainstone - auto charge 0 - one option is free - take it",
+        give: { earlyLeechValue: 1, lateLeechValue: 3, autoBrainstone: true, autoCharge: 0 },
+        want: { decision: ChargeDecision.Yes, offer: "1pw,1t" },
+      },
+      {
+        name: "auto brainstone - auto charge 0 - one option is free - take it",
+        give: { earlyLeechValue: 2, lateLeechValue: 3, autoBrainstone: true, autoCharge: 0 },
+        want: { decision: ChargeDecision.No, offer: null },
+      },
+    ];
+
+    for (const test of tests) {
+      it(test.name, () => {
+        const give = test.give;
+        const offers = getTaklonsExtraLeechOffers(give.earlyLeechValue, give.lateLeechValue);
+
+        const player = new Player();
+        player.settings.autoChargePower = test.give.autoCharge;
+        player.settings.autoBrainstone = test.give.autoBrainstone;
+
+        const request = new ChargeRequest(player, offers, false, false, null);
+        const decision = decideChargeRequest(request);
+        expect(decision).to.equal(test.want.decision);
+        if (test.want.decision == ChargeDecision.Yes) {
+          expect(request.maxAllowedOffer.offer).to.deep.equal(test.want.offer);
+        }
       });
     }
   });
