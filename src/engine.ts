@@ -1458,7 +1458,7 @@ export default class Engine {
     hex.data.planet = Planet.Lost;
 
     // As the geometry of the universe changed, federations are possibly invalid.
-    this.players.forEach((p) => p.clearFederationCacheIfLostPlanetIsInTheWay(hex));
+    this.players.forEach((p) => p.notifyOfNewPlanet(hex));
 
     this.player(player).build(Building.Mine, hex, Reward.parse(data.cost), this.map, 0);
 

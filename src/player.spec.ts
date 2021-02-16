@@ -80,7 +80,7 @@ describe("Player", () => {
   describe("whenTheLostPlanetIsPlaced", () => {
     it("does nothing if there are no cached federations", () => {
       const player = new Player();
-      expect(() => player.clearFederationCacheIfLostPlanetIsInTheWay(new GaiaHex())).to.not.throw();
+      expect(() => player.notifyOfNewPlanet(new GaiaHex())).to.not.throw();
     });
 
     it("does nothing if the cached federations are not overlapping the lost planet", () => {
@@ -96,7 +96,7 @@ describe("Player", () => {
           },
         ],
       };
-      player.clearFederationCacheIfLostPlanetIsInTheWay(new GaiaHex());
+      player.notifyOfNewPlanet(new GaiaHex());
       expect(player.federationCache).to.not.equal(null);
       expect(player.federationCache.availableSatellites).to.equal(25);
     });
@@ -115,7 +115,7 @@ describe("Player", () => {
           },
         ],
       };
-      player.clearFederationCacheIfLostPlanetIsInTheWay(lostPlanet);
+      player.notifyOfNewPlanet(lostPlanet);
       expect(player.federationCache).to.equal(null);
     });
   });

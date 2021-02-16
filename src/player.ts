@@ -820,9 +820,9 @@ export default class Player extends EventEmitter {
     return 0;
   }
 
-  clearFederationCacheIfLostPlanetIsInTheWay(hexOfLostPlanet: GaiaHex) {
+  notifyOfNewPlanet(hexOfPlanet: GaiaHex) {
     if (this.federationCache) {
-      if (this.federationCache.federations.some((fed) => fed.hexes.some((hex) => hex == hexOfLostPlanet))) {
+      if (this.federationCache.federations.some((fed) => fed.hexes.some((hex) => hex == hexOfPlanet))) {
         this.federationCache = null;
       }
     }
