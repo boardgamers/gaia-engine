@@ -31,7 +31,10 @@ export class ChargeRequest {
     let maxAllowedOffer: Offer = null;
 
     for (const offer of this.offers) {
-      for (const reward of Reward.parse(offer.offer)) {
+      const rewards = Reward.parse(offer.offer);
+      for (let i = 0; i < rewards.length; i++) {
+        const reward = rewards[i];
+
         if (reward.type == Resource.ChargePower) {
           const charge = reward.count;
           if (charge < minCharge) {
@@ -40,9 +43,14 @@ export class ChargeRequest {
           if (charge > maxCharge) {
             maxCharge = charge;
           }
-          if (charge <= limit && charge > allowedMax) {
-            maxAllowedOffer = offer;
-            allowedMax = charge;
+          if (charge <= limit) {
+            if (charge > allowedMax) {
+              maxAllowedOffer = offer;
+              allowedMax = charge;
+            } else if (charge == allowedMax && i == 0) {
+              //prefer to charge first if 2 offers have the same charge
+              maxAllowedOffer = offer;
+            }
           }
         }
       }

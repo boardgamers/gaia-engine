@@ -84,6 +84,11 @@ describe("AutoCharge", () => {
         want: { decision: ChargeDecision.Yes, offer: "1t,3pw" },
       },
       {
+        name: "auto brainstone - not limited by auto charge - both charge same amount - take charge first",
+        give: { earlyLeechValue: 2, lateLeechValue: 2, autoBrainstone: true, autoCharge: 100 },
+        want: { decision: ChargeDecision.Yes, offer: "2pw,1t" },
+      },
+      {
         name: "auto brainstone - one option leeches more than max - ask",
         give: { earlyLeechValue: 2, lateLeechValue: 3, autoBrainstone: true, autoCharge: 2 },
         want: { decision: ChargeDecision.Ask, offer: null },
