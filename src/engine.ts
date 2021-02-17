@@ -8,6 +8,7 @@ import {
   AdvTechTilePos,
   BoardAction,
   Booster,
+  BrainstoneArea,
   Building,
   Command,
   Expansion,
@@ -474,6 +475,21 @@ export default class Engine {
 
     if (pl.settings.autoIncome) {
       this.player(this.currentPlayer).receiveIncome(pl.incomeSelection().autoplayEvents());
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Automatically decide on broinstone if autoBrainstone is enabled
+   */
+  autoBrainstone(cmd: AvailableCommand): boolean {
+    const pl = this.player(this.playerToMove);
+
+    if (pl.settings.autoBrainstone) {
+      const choices = cmd.data as Array<BrainstoneArea>;
+      const dest = choices.includes(BrainstoneArea.Area3) ? BrainstoneArea.Area3 : BrainstoneArea.Area2;
+      this.move(`${pl.faction} ${Command.BrainStone} ${dest}`, false);
       return true;
     }
     return false;

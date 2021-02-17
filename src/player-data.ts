@@ -124,10 +124,10 @@ export default class PlayerData extends EventEmitter {
     this.gainReward(cost, true, source);
   }
 
-  gainRewards(rewards: Reward[], autoBrainstone = false, source?: EventSource) {
+  gainRewards(rewards: Reward[], forced = false, source?: EventSource) {
     let followBrainStoneHeuristics = true;
 
-    if (!autoBrainstone && this.brainstone && rewards.some((rew) => rew.type === Resource.ChargePower)) {
+    if (!forced && this.brainstone && rewards.some((rew) => rew.type === Resource.ChargePower)) {
       // We need to do something about the brainstone
       const [cloneHeuristic, cloneNoHeuristic] = [this.clone(), this.clone()];
 

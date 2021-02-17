@@ -189,7 +189,7 @@ export default class Player extends EventEmitter {
     } else {
       this.data.gainRewards(
         rewards.map((rew) => this.factionReward(rew)),
-        this.settings.autoBrainstone,
+        false,
         source
       );
     }

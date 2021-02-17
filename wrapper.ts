@@ -144,6 +144,7 @@ function automove(engine: Engine) {
     const autoMoves = new Map<Command, (AvailableCommand) => boolean>([
       [Command.ChargePower, engine.autoChargePower],
       [Command.ChooseIncome, engine.autoIncome],
+      [Command.BrainStone, engine.autoBrainstone],
     ]);
 
     for (const [command, autoMove] of autoMoves) {
