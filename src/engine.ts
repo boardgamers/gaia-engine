@@ -470,7 +470,7 @@ export default class Engine {
       case ChargeDecision.Ask:
         return false;
       case ChargeDecision.Undecided:
-        assert(`no decision was reached: ${request}`);
+        assert(false, `Could not decide how to charge power: ${request}`);
         break;
     }
   }
