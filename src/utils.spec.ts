@@ -1,5 +1,5 @@
-import {expect} from "chai";
-import {combinations} from "./utils";
+import { expect } from "chai";
+import { combinations } from "./utils";
 
 describe("Utils", () => {
   describe("combinations", () => {

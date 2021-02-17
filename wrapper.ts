@@ -1,5 +1,5 @@
 import axios from "axios";
-import Engine from "./index";
+import Engine, { Command } from "./index";
 import crypto from "crypto";
 import { EngineOptions } from "./src/engine";
 import { Round } from "./src/enums";
@@ -136,10 +136,27 @@ function automove(engine: Engine) {
 
     oldRound = engine.round;
 
-    while (engine.autoChargePower()) {
-      afterMove(engine, oldRound);
-      modified = true;
-      oldRound = engine.round;
+    if (this.playerToMove === undefined) {
+      return;
+    }
+    this.generateAvailableCommandsIfNeeded();
+
+    const autoMoves = new Map<Command, (AvailableCommand) => boolean>([
+      [Command.ChargePower, engine.autoChargePower],
+      [Command.ChooseIncome, engine.autoIncome],
+    ]);
+
+    for (const [command, autoMove] of autoMoves) {
+      const availableCommand = this.findAvailableCommand(this.playerToMove, command);
+      if (availableCommand) {
+        const moved = autoMove(availableCommand);
+        if (moved) {
+          afterMove(engine, oldRound);
+          modified = true;
+          oldRound = engine.round;
+        }
+        break;
+      }
     }
   } while (modified);
 }

@@ -100,47 +100,6 @@ describe("IncomeSelection", () => {
   describe("autoplayEvents", () => {
     const tests: {
       name: string;
-      give: { events: Event[]; autoIncome: boolean };
-      want: { events: Event[]; needsManualSelection: boolean };
-    }[] = [
-      {
-        name: "gain - no autoIncome",
-        give: { events: Event.parse(["+1t"], null), autoIncome: false },
-        want: { events: Event.parse(["+1t"], null), needsManualSelection: false },
-      },
-      {
-        name: "gain - autoIncome",
-        give: { events: Event.parse(["+1t"], null), autoIncome: true },
-        want: { events: Event.parse(["+1t"], null), needsManualSelection: false },
-      },
-      {
-        name: "gain & charge - no autoIncome",
-        give: { events: Event.parse(["+1t", "+2pw"], null), autoIncome: false },
-        want: { events: [], needsManualSelection: true },
-      },
-      {
-        name: "gain & charge - autoIncome",
-        give: { events: Event.parse(["+1t", "+2pw"], null), autoIncome: true },
-        want: { events: Event.parse(["+1t", "+2pw"], null), needsManualSelection: false },
-      },
-    ];
-
-    for (const test of tests) {
-      it(test.name, () => {
-        const player = new Player();
-        player.settings.autoIncome = test.give.autoIncome;
-        player.loadEvents(test.give.events);
-
-        const incomeSelection = player.incomeSelection();
-        expect(incomeSelection.needsManualSelection).to.equal(test.want.needsManualSelection);
-        expect(incomeSelection.autoplayEvents()).to.deep.equal(test.want.events);
-      });
-    }
-  });
-
-  describe("calculateAutoIncome", () => {
-    const tests: {
-      name: string;
       give: { power: Power; events: Event[] };
       want: { events: Event[] };
     }[] = [

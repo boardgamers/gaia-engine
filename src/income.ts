@@ -1,18 +1,18 @@
 import Event from "./events";
 import PlayerData from "./player-data";
 import Reward from "./reward";
-import {Resource} from "./enums";
-import {Settings} from "./player";
-import {combinations} from "./utils";
+import { Resource } from "./enums";
+import { Settings } from "./player";
+import { combinations } from "./utils";
+import assert from "assert";
 
 export class IncomeSelection {
   private constructor(
-    readonly needsManualSelection: boolean,
+    readonly needed: boolean,
     readonly autoplayEvents: () => Event[],
     readonly descriptions: Reward[],
     readonly remainingChargesAfterIncome: number
-  ) {
-  }
+  ) {}
 
   static create(data: PlayerData, settings: Settings, events: Event[]): IncomeSelection {
     // we need to check if rewards contains Resource.GainToken and Resource.GainPower
@@ -22,17 +22,13 @@ export class IncomeSelection {
     const gainTokens = notActivated.filter((ev) => ev.rewards.some((rw) => rw.type === Resource.GainToken));
     const chargePowers = notActivated.filter((ev) => ev.rewards.some((rw) => rw.type === Resource.ChargePower));
 
-    const auto = gainTokens.length === 0 || chargePowers.length === 0 || settings.autoIncome;
-
     return new IncomeSelection(
-      !auto,
+      gainTokens.length !== 0 && chargePowers.length !== 0,
       () => {
-        if (settings.autoIncome) {
-          return calculateAutoIncome(data, gainTokens, chargePowers);
-        } else if (auto) {
-          return events;
+        if (!settings.autoIncome) {
+          assert(false, "auto income was called, but it's not enabled for the player");
         }
-        return [];
+        return calculateAutoIncome(data, gainTokens, chargePowers);
       },
       descriptions(gainTokens, chargePowers),
       remainingChargesAfterIncome(data.clone(), gainTokens, chargePowers)
@@ -56,12 +52,12 @@ function remainingChargesAfterIncome(data: PlayerData, gainTokens: Event[], char
   return 100 - applyChargePowers(data, Event.parse(["+100pw"], null));
 }
 
-function runIncomeSimulation(data: PlayerData, beforeCharge: Event[], chargePowers: Event[], gainTokens: Event[]) {
+function runIncomeSimulation(data: PlayerData, beforeCharge: Event[], chargePowers: Event[], allGainTokens: Event[]) {
   applyGainTokens(data, beforeCharge);
   const waste = applyChargePowers(data, chargePowers);
-  const gainAfterCharge = gainTokens.filter((event) => !beforeCharge.includes(event));
+  const gainAfterCharge = allGainTokens.filter((event) => !beforeCharge.includes(event));
   applyGainTokens(data, gainAfterCharge);
-  return {waste: waste, power: data.power, events: beforeCharge.concat(chargePowers).concat(gainAfterCharge)};
+  return { waste: waste, power: data.power, events: beforeCharge.concat(chargePowers).concat(gainAfterCharge) };
 }
 
 /**

@@ -609,7 +609,7 @@ export function possibleIncomes(engine: Engine, player: Player) {
 
   const s = pl.incomeSelection();
 
-  if (s.needsManualSelection) {
+  if (s.needed) {
     commands.push({
       name: Command.ChooseIncome,
       player,

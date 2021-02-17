@@ -249,7 +249,7 @@ export default class Engine {
     return (this.availableCommands = generateAvailableCommands(this, subphase, data));
   }
 
-  findAvailableCommand(player: PlayerEnum, command: Command) {
+  findAvailableCommand(player: PlayerEnum, command: Command): AvailableCommand {
     this.availableCommands = this.availableCommands || this.generateAvailableCommands();
     return this.availableCommands.find((availableCommand) => {
       if (availableCommand.name !== command) {
@@ -435,16 +435,7 @@ export default class Engine {
   /**
    * Automatically leech when there's no cost
    */
-  autoChargePower(): boolean {
-    if (this.playerToMove === undefined) {
-      return false;
-    }
-    this.generateAvailableCommandsIfNeeded();
-    const cmd = this.findAvailableCommand(this.playerToMove, Command.ChargePower);
-    if (!cmd) {
-      return false;
-    }
-
+  autoChargePower(cmd: AvailableCommand): boolean {
     const offers = cmd.data.offers;
     const pl = this.player(this.playerToMove);
     const playerHasPassed = this.passedPlayers.includes(pl.player);
@@ -473,6 +464,19 @@ export default class Engine {
         assert(false, `Could not decide how to charge power: ${request}`);
         break;
     }
+  }
+
+  /**
+   * Automatically decide on income if autoIncome is enabled
+   */
+  autoIncome(cmd: AvailableCommand): boolean {
+    const pl = this.player(this.playerToMove);
+
+    if (pl.settings.autoIncome) {
+      this.player(this.currentPlayer).receiveIncome(pl.incomeSelection().autoplayEvents());
+      return true;
+    }
+    return false;
   }
 
   static fromData(data: any) {
@@ -706,12 +710,12 @@ export default class Engine {
    * Pauses if an action is needed from the player.
    */
   handleNextIncome() {
-    const incomeSelection = this.player(this.currentPlayer).incomeSelection();
-    if (incomeSelection.needsManualSelection) {
+    const pl = this.player(this.currentPlayer);
+    if (pl.incomeSelection().needed) {
       return false;
     }
 
-    this.player(this.currentPlayer).receiveIncome(incomeSelection.autoplayEvents());
+    pl.receiveIncome(pl.events[Operator.Income]);
 
     if (!this.moveToNextPlayer(this.tempTurnOrder, { loop: false })) {
       this.endIncomePhase();
