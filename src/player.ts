@@ -539,7 +539,7 @@ export default class Player extends EventEmitter {
     this.removeEvents(Event.parse(techs[tile.tile], `tech-${pos}` as TechPos));
   }
 
-  getIncomeSelection(): IncomeSelection {
+  incomeSelection(): IncomeSelection {
     return IncomeSelection.create(this.data, this.settings, this.events[Operator.Income]);
   }
 

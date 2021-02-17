@@ -3,6 +3,7 @@ import PlayerData from "./player-data";
 import Reward from "./reward";
 import { Resource } from "./enums";
 import { Settings } from "./player";
+import {combinations} from "./utils";
 
 export class IncomeSelection {
   private constructor(
@@ -79,13 +80,6 @@ export function calculateAutoIncome(data: PlayerData, gainTokens: Event[], charg
     }
   }
   return maxCharge.events;
-}
-
-export function combinations<T>(t: T[]): T[][] {
-  if (t.length == 0) {
-    return [[]];
-  }
-  return combinations(t.slice(1)).flatMap((value) => [value, value.concat(t[0])]);
 }
 
 function applyGainTokens(data: PlayerData, gainTokens: Event[]) {

@@ -1,10 +1,6 @@
 import { expect } from "chai";
 import Engine from "../engine";
 import { Player, BrainstoneArea } from "../enums";
-import { Power } from "../player-data";
-import Event from "../events";
-import { getTaklonsExtraLeechOffers, Offer } from "../available-command";
-import { Settings } from "../player";
 
 describe("Taklons", () => {
   it("should allow charge with +t freeIncome", () => {

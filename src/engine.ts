@@ -448,7 +448,7 @@ export default class Engine {
     const offers = cmd.data.offers;
     const pl = this.player(this.playerToMove);
     const playerHasPassed = this.passedPlayers.includes(pl.player);
-    const request = new ChargeRequest(pl, offers, this.isLastRound, playerHasPassed, pl.getIncomeSelection());
+    const request = new ChargeRequest(pl, offers, this.isLastRound, playerHasPassed, pl.incomeSelection());
 
     const chargeDecision = decideChargeRequest(request);
     switch (chargeDecision) {
@@ -706,7 +706,7 @@ export default class Engine {
    * Pauses if an action is needed from the player.
    */
   handleNextIncome() {
-    const incomeSelection = this.player(this.currentPlayer).getIncomeSelection();
+    const incomeSelection = this.player(this.currentPlayer).incomeSelection();
     if (incomeSelection.needsManualSelection) {
       return false;
     }

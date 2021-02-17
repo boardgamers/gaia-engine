@@ -16,7 +16,6 @@ import {
   TechTilePos,
 } from "./enums";
 import Engine from "./engine";
-import { Settings } from "./player";
 import { difference, range } from "lodash";
 import factions from "./factions";
 import { upgradedBuildings } from "./buildings";
@@ -608,7 +607,7 @@ export function possibleIncomes(engine: Engine, player: Player) {
   const commands = [];
   const pl = engine.player(player);
 
-  const s = pl.getIncomeSelection();
+  const s = pl.incomeSelection();
 
   if (s.needsManualSelection) {
     commands.push({
