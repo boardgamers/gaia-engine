@@ -1,8 +1,8 @@
 import Event from "./events";
 import PlayerData from "./player-data";
 import Reward from "./reward";
-import { Resource } from "./enums";
-import { Settings } from "./player";
+import {Resource} from "./enums";
+import {Settings} from "./player";
 import {combinations} from "./utils";
 
 export class IncomeSelection {
@@ -11,7 +11,8 @@ export class IncomeSelection {
     readonly autoplayEvents: () => Event[],
     readonly descriptions: Reward[],
     readonly remainingChargesAfterIncome: number
-  ) {}
+  ) {
+  }
 
   static create(data: PlayerData, settings: Settings, events: Event[]): IncomeSelection {
     // we need to check if rewards contains Resource.GainToken and Resource.GainPower
@@ -60,9 +61,15 @@ function runIncomeSimulation(data: PlayerData, beforeCharge: Event[], chargePowe
   const waste = applyChargePowers(data, chargePowers);
   const gainAfterCharge = gainTokens.filter((event) => !beforeCharge.includes(event));
   applyGainTokens(data, gainAfterCharge);
-  return { waste: waste, power: data.power, events: beforeCharge.concat(chargePowers).concat(gainAfterCharge) };
+  return {waste: waste, power: data.power, events: beforeCharge.concat(chargePowers).concat(gainAfterCharge)};
 }
 
+/**
+ * Calculates income using the following priority:
+ *
+ * 1. Wastes the least amount of power tokens
+ * 2. Put the most power tokens in bowl 3
+ */
 export function calculateAutoIncome(data: PlayerData, gainTokens: Event[], chargePowers: Event[]): Event[] {
   const possibleSequences = combinations(gainTokens).map((beforeCharge) =>
     runIncomeSimulation(data.clone(), beforeCharge, chargePowers, gainTokens)
@@ -88,7 +95,12 @@ function applyGainTokens(data: PlayerData, gainTokens: Event[]) {
   }
 }
 
-function applyChargePowers(data: PlayerData, chargePowers: Event[]) {
+/**
+ * Apply all the charge power events
+ *
+ * @return the amount of power wasted
+ */
+function applyChargePowers(data: PlayerData, chargePowers: Event[]): number {
   let waste = 0;
   for (const e of chargePowers) {
     for (const reward of e.rewards) {

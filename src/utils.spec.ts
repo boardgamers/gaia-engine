@@ -1,9 +1,5 @@
-import Event from "./events";
-import Player from "./player";
-import { expect } from "chai";
-import { combinations } from "./income";
-import { Power } from "./player-data";
-import { BrainstoneArea } from "./enums";
+import {expect} from "chai";
+import {combinations} from "./utils";
 
 describe("Utils", () => {
   describe("combinations", () => {
@@ -18,9 +14,9 @@ describe("Utils", () => {
         want: [[]],
       },
       {
-        name: "1,2",
-        give: [1, 2],
-        want: [[], [1], [2], [2, 1]],
+        name: "1,2,3",
+        give: [1, 2, 3],
+        want: [[], [1], [2], [2, 1], [3], [3, 1], [3, 2], [3, 2, 1]],
       },
     ];
 
