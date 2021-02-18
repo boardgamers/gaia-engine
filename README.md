@@ -2,6 +2,8 @@
 
 Javascript engine for Gaia Project.
 
+**MOVED TO https://github.com/boardgamers/gaia-project**
+
 ## Demo
 
 Check out [boardgamers.space](https://www.boardgamers.space)! Reach out to us if you want to contribute.
